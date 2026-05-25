@@ -71,3 +71,46 @@ pip install -r requirements.txt
 bash scripts/fetch_cornell.sh    # written in Phase 2; Phase 1 used the inline curl from the report
 jupyter nbconvert --to notebook --execute --inplace notebooks/phase1_baseline.ipynb
 ```
+
+## Iteration Summary
+
+### Phase 1: Domain Research + Dataset + 3 Baselines — 2026-05-25
+
+<table>
+<tr>
+<td valign="top" width="38%">
+
+**What was tested:** Three non-learning baselines on Cornell (object-wise split, 100 test images, 542 positives) under the Jiang IoU>0.25 / angle<30° metric. Random = 1.0 %, image-centre + median size = 4.0 %, depth-edge antipodal = 17.0 %.<br><br>
+**What worked best:** B3 depth-edge antipodal heuristic — depth-thresholded object mask → `cv2.minAreaRect` → grasp across the narrow axis. Wins because the prediction *follows the object* instead of sitting at a fixed point.
+
+</td>
+<td align="center" width="24%">
+
+<img src="results/phase1_failure_decomposition.png" width="220">
+
+</td>
+<td valign="top" width="38%">
+
+**Key Insight:** Orientation isn't the hard part of Cornell. Across all three baselines the dominant failure mode is "angle within 30° but IoU too low" — 31–49 % of predictions. The CNN's real job in Phase 2 is **picking a grasp point on the object's surface**, not orienting the gripper.<br><br>
+**Surprise:** Random chance was 1.0 %, not the 5–15 % I pre-registered. The Jiang metric's two AND constraints are negatively correlated on random predictions — passing IoU on some GT tends to fail its angle.<br><br>
+**Research:** Jiang 2011 — original Cornell + IoU/angle metric, adopted verbatim. Lenz 2014 — first deep model at 73.9 % object-wise, so Phase 2's CNN must clear B3 by ≥ 50 pp.<br><br>
+**Best Model So Far:** B3 depth + antipodal — **17.0 %** accuracy on the object-wise held-out split.
+
+</td>
+</tr>
+</table>
+
+## Current Status
+
+Phase 1 complete. Current best: **B3 depth + antipodal heuristic at 17.0 % Jiang accuracy** (object-wise split, n=100). Phase 2 (Tue 2026-05-26) replicates Redmon & Angelova plus 4 modern CNN/ViT alternatives; target is to clear B3 by ≥ 50 pp.
+
+## Key Findings
+
+1. Orientation is not the bottleneck on Cornell — 58 % of constant-angle=0 predictions already land within 30° of some GT.
+2. Cornell's image-centre prior buys only +3 pp over random; grasps within an object scatter across its surface.
+3. Classical antipodal physics (depth + minAreaRect) closes 16 pp of the ~99 pp gap to SOTA — the remaining 82 pp is what the CNN's RGB learning pays for.
+4. The Jiang IoU∧angle metric is brutal in expectation — random chance is 1 %, not the 5–15 % a naive marginals-multiply estimate predicts.
+
+## Models Compared
+
+3 baselines so far (random, centre+median-size, depth-edge antipodal). Phase 2 will add 5 learned models (Redmon-style CNN, ResNet-18 regressor, ResNet-18 + rotation classifier, GG-CNN, small ViT).
