@@ -1,0 +1,45 @@
+{
+  "phase_1": {
+    "date": "2026-05-25",
+    "dataset": "Cornell Grasping Dataset (folders 01-03 only, downloaded from Wayback mirror)",
+    "n_images_total": 300,
+    "n_images_train": 200,
+    "n_images_test": 100,
+    "split": "object-wise: folders 01-02 train, folder 03 test",
+    "metric_primary": "Jiang rectangle metric (IoU > 0.25 AND angle err < 30 deg)",
+    "baselines": {
+      "B1_random": {
+        "accuracy": 0.01,
+        "median_iou": 0.0,
+        "median_angle_err_deg": 45.95985004671212,
+        "n": 100
+      },
+      "B2_center_heuristic": {
+        "accuracy": 0.04,
+        "median_iou": 0.08334578232591369,
+        "median_angle_err_deg": 23.985887047551856,
+        "n": 100,
+        "fitted_cx": 278.5,
+        "fitted_cy": 282.66974999999996,
+        "fitted_w_median": 33.924811077475184,
+        "fitted_h_median": 24.413111231467404
+      },
+      "B3_depth_antipodal": {
+        "accuracy": 0.17,
+        "median_iou": 0.15923717829128514,
+        "median_angle_err_deg": 37.046770069778134,
+        "n": 100,
+        "plate_height_px": 24.413111231467404
+      }
+    },
+    "published_reference_points": {
+      "Lenz_2014_image_wise": 0.756,
+      "Lenz_2014_object_wise": 0.739,
+      "Redmon_Angelova_2015_image_wise": 0.844,
+      "Redmon_Angelova_2015_object_wise": 0.849,
+      "GGCNN_Morrison_2018": 0.73,
+      "Bilateral_Cao_2023_image_wise": 0.994,
+      "Bilateral_Cao_2023_object_wise": 0.978
+    }
+  }
+}
