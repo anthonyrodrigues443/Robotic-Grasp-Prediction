@@ -1,0 +1,41 @@
+# Data
+data/raw/
+data/processed/
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/README.md
+
+# Models
+models/*.pt
+models/*.pth
+models/*.pkl
+models/*.joblib
+models/*.bin
+models/*.h5
+!models/.gitkeep
+!models/model_card.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+/tmp/
