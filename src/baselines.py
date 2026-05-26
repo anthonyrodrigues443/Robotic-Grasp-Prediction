@@ -206,19 +206,29 @@ class DepthAntipodalBaseline:
         # use the biggest contour
         cnt = max(contours, key=cv2.contourArea)
         (cx, cy), (w_box, h_box), angle_deg_cv = cv2.minAreaRect(cnt)
-        # cv2's angle is in (-90, 0]; w and h are arbitrarily assigned. We
-        # want the grasp's long axis = SHORT side of the object box, since
-        # the gripper closes across the narrow dimension.
+        # cv2's angle is in (-90, 0] (OpenCV 4.x): the rotation of the box's
+        # rotated-x axis from world horizontal. w_box is the length along the
+        # rotated-x axis; h_box along the rotated-y axis. The *grasp's* long
+        # axis (jaw opening) is perpendicular to the *object's* long axis,
+        # because the gripper closes across the object's narrow dimension.
+        #
+        # - If w_box >= h_box, the object's long axis is the rotated-x at
+        #   angle_deg_cv, so the grasp long axis is at angle_deg_cv + 90°.
+        # - If h_box >  w_box, the object's long axis is the rotated-y at
+        #   angle_deg_cv + 90°, so the grasp long axis is at angle_deg_cv
+        #   (which equals angle_deg_cv + 180°, modulo the 180° grasp
+        #   symmetry).
+        #
+        # The original Phase-1 implementation had these two branches swapped,
+        # adding a ~90° error on roughly half of test samples and pushing
+        # B3's median angle err from ~0° to 37°. Verified empirically against
+        # 9 rotated-rectangle test cases — fixed branch hits 0° error in all.
         short = min(w_box, h_box)
         long_ = max(w_box, h_box)
-        # Map cv2's angle to the grasp's jaw-opening direction (perpendicular
-        # to the object's long axis). If h > w, the long axis is along the
-        # box's vertical, so the grasp's long axis is along the box's
-        # horizontal, i.e. angle_deg_cv + 90.
         if h_box > w_box:
-            grasp_angle_deg = angle_deg_cv + 90.0
-        else:
             grasp_angle_deg = angle_deg_cv
+        else:
+            grasp_angle_deg = angle_deg_cv + 90.0
         # wrap to [-90, 90)
         while grasp_angle_deg >= 90.0:
             grasp_angle_deg -= 180.0

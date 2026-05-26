@@ -41,5 +41,58 @@
       "Bilateral_Cao_2023_image_wise": 0.994,
       "Bilateral_Cao_2023_object_wise": 0.978
     }
+  },
+  "phase_2": {
+    "date": "2026-05-26",
+    "split": "object-wise: folders 01-02 train, folder 03 test",
+    "n_train": 200,
+    "n_test": 100,
+    "epochs": 40,
+    "batch_size": 16,
+    "device": "mps",
+    "champion": "M2_ResNet18Regressor",
+    "metric_primary": "Jiang IoU > 0.25 AND angle err < 30\u00b0",
+    "models": {
+      "M1_TinyRedmonCNN": {
+        "accuracy": 0.35,
+        "median_iou": 0.15564507473214384,
+        "median_angle_err_deg": 11.863827553693408,
+        "inference_ms_per_image": 8.832066059112549,
+        "train_seconds": 126.75577712059021,
+        "n_params": 1675878
+      },
+      "M2_ResNet18Regressor": {
+        "accuracy": 0.55,
+        "median_iou": 0.2934479479361577,
+        "median_angle_err_deg": 6.078366634803351,
+        "inference_ms_per_image": 19.099853038787842,
+        "train_seconds": 170.75215482711792,
+        "n_params": 11179590
+      },
+      "M3_ResNet18Hybrid": {
+        "accuracy": 0.13,
+        "median_iou": 0.004372184780237097,
+        "median_angle_err_deg": 8.641564477011874,
+        "inference_ms_per_image": 11.60170316696167,
+        "train_seconds": 169.20536613464355,
+        "n_params": 11187798
+      },
+      "M4_GGCNNTiny": {
+        "accuracy": 0.0,
+        "median_iou": 0.0,
+        "median_angle_err_deg": 44.04342389477409,
+        "inference_ms_per_image": 12.024424076080322,
+        "train_seconds": 201.57547307014465,
+        "n_params": 119332
+      },
+      "M5_TinyViT": {
+        "accuracy": 0.47,
+        "median_iou": 0.3638960955473023,
+        "median_angle_err_deg": 36.82304414008568,
+        "inference_ms_per_image": 14.110300540924072,
+        "train_seconds": 165.4975938796997,
+        "n_params": 1969350
+      }
+    }
   }
 }
