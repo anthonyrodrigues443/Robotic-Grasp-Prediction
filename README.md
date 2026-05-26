@@ -3,17 +3,18 @@
 > Predict 2-D oriented grasp rectangles from RGB-D images of household objects
 > on a table. Cornell Grasping Dataset; Jiang IoU > 0.25 / angle < 30° metric.
 
-**Status:** Phase 1 / 7 — domain research, dataset onboarded, three baselines
-established (random, image-centre heuristic, depth-edge antipodal). Numbers in
-[results/EXPERIMENT_LOG.md](results/EXPERIMENT_LOG.md). Each phase builds on the
-research log below.
+**Status:** Phase 2 / 7 — five CNN/ViT architectures trained head-to-head on the
+same Phase-1 object-wise split. Champion is the ImageNet-pretrained ResNet-18
+regressor at 55.0 % Jiang accuracy (+38 pp over the Phase-1 depth-antipodal
+baseline). Numbers in [results/EXPERIMENT_LOG.md](results/EXPERIMENT_LOG.md).
+Each phase builds on the research log below.
 
 ## Research log
 
 | Phase | Day | Title | Notebook | Report |
 |------:|:---:|:-----:|:--------:|:------:|
 | 1 | Mon 2026-05-25 | Domain research + dataset + 3 baselines | [phase1_baseline.ipynb](notebooks/phase1_baseline.ipynb) | [day1_phase1_report.md](reports/day1_phase1_report.md) |
-| 2 | Tue 2026-05-26 | Multi-model experiment (CNN regressor, ResNet, GG-CNN, ViT, …) | — | — |
+| 2 | Tue 2026-05-26 | Multi-model experiment (CNN regressor, ResNet, GG-CNN, ViT, …) | [phase2_multi_model.ipynb](notebooks/phase2_multi_model.ipynb) | [day2_phase2_report.md](reports/day2_phase2_report.md) |
 | 3 | Wed 2026-05-27 | Feature engineering + deep dive on top models | — | — |
 | 4 | Thu 2026-05-28 | Hyperparameter tuning + error analysis | — | — |
 | 5 | Fri 2026-05-29 | Advanced techniques + ablation + LLM head-to-head | — | — |
@@ -100,17 +101,44 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/phase1_baseline.ip
 </tr>
 </table>
 
+### Phase 2: Five CNN/ViT Architectures Head-to-Head — 2026-05-26
+
+<table>
+<tr>
+<td valign="top" width="38%">
+
+**What was tested:** Five deliberately different models on the same Phase-1 object-wise split (200 train / 100 test) and the same Jiang metric. M1 TinyRedmonCNN from-scratch (35.0 %), M2 ResNet-18 regressor ImageNet-pretrained (**55.0 %**), M3 ResNet-18 hybrid head with 18-way angle classifier (13.0 %), M4 GGCNNTiny per-pixel quality map (0.0 %), M5 TinyViT from-scratch (47.0 %).<br><br>
+**What worked best:** M2 ResNet-18 regressor — ImageNet transfer + a unified 6-vec (cx, cy, w, h, sin(2θ), cos(2θ)) output. +38 pp over the Phase-1 B3 baseline; median angle err 6.1°, median IoU 0.293.
+
+</td>
+<td align="center" width="24%">
+
+<img src="results/phase2_accuracy_bar.png" width="220">
+
+</td>
+<td valign="top" width="38%">
+
+**Key Insight:** Redmon's 2015 18-way angle-classification head loses by **42 pp** to continuous sin/cos regression on the same backbone. The CE term dominates the AdamW gradient on 11 examples-per-bin, and the (cx, cy, w, h) regression branch collapses to noise (median IoU 0.004). The 13-year-old design choice everyone copies doesn't survive a fair head-to-head against the simpler unified representation.<br><br>
+**Surprise:** ViTs and CNNs fail in opposite directions. M5 TinyViT has the **highest** median IoU (0.364) but the **worst** angle error (36.8°) — 38 % of its failures are "IoU ok, angle wrong" vs M2's 8 %. Patch16 tokens lose intra-patch gradients that local convs preserve for orientation.<br><br>
+**Research:** Redmon & Angelova ICRA 2015 — head-to-head'd their angle-discretisation choice on the same backbone, the simpler regression head wins. Dosovitskiy ICLR 2021 — predicted ViTs would underperform on 200 images; M5 instead failed *differently* from CNNs, suggesting hybrid ViT-localise + CNN-orient for Phase 3.<br><br>
+**Best Model So Far:** M2 ResNet-18 regressor — **55.0 %** Jiang accuracy on the object-wise split.
+
+</td>
+</tr>
+</table>
+
 ## Current Status
 
-Phase 1 complete. Current best: **B3 depth + antipodal heuristic at 17.0 % Jiang accuracy** (object-wise split, n=100). Phase 2 (Tue 2026-05-26) replicates Redmon & Angelova plus 4 modern CNN/ViT alternatives; target is to clear B3 by ≥ 50 pp.
+Phase 2 complete. Current best: **M2 ResNet-18 regressor at 55.0 % Jiang accuracy** (object-wise split, n=100), median angle err 6.1°, median IoU 0.293. +38 pp over the Phase-1 B3 baseline; missed the "+50 pp" pre-registered target by 12 pp. Phase 3 (Wed 2026-05-27) retrains M2 on the full 885-image benchmark (archives 04–10 already on disk) with rotation augmentation, depth as a 4th channel, and a multi-positive closest-GT loss; floor is to clear 55 % by ≥ 10 pp.
 
 ## Key Findings
 
-1. Orientation is not the bottleneck on Cornell — 58 % of constant-angle=0 predictions already land within 30° of some GT.
-2. Cornell's image-centre prior buys only +3 pp over random; grasps within an object scatter across its surface.
-3. Classical antipodal physics (depth + minAreaRect) closes 16 pp of the ~99 pp gap to SOTA — the remaining 82 pp is what the CNN's RGB learning pays for.
-4. The Jiang IoU∧angle metric is brutal in expectation — random chance is 1 %, not the 5–15 % a naive marginals-multiply estimate predicts.
+1. **Continuous sin/cos angle regression beats Redmon's 18-way angle classification by 42 pp on the same ResNet-18 backbone** — M2 = 55 %, M3 = 13 %. Joint CE+MSE loss on 200 images / 18 bins crushes the regression branch; the unified 6-vec representation sidesteps the entire failure mode.
+2. **ImageNet pretraining is worth +20 pp on 200 grasp images** — M2 (pretrained) vs M1 (from scratch, same regression head) = 55 % vs 35 %.
+3. **ViTs and CNNs have dual failure modes.** M5 TinyViT highest median IoU (0.364) + worst angle err (36.8°); M2 ResNet-18 the inverted profile. Phase-1's "localisation is the bottleneck" framing survives for CNNs but **inverts for transformers** at this scale.
+4. Orientation is not the bottleneck on Cornell — 27 % of M2's failures are still "angle ok, IoU too low"; the CV→CNN gap closed the "both wrong" bucket (50 %→10 %), not the localisation one.
+5. The Jiang IoU∧angle metric is brutal in expectation — random chance is 1 %, not the 5–15 % a naive marginals-multiply estimate predicts.
 
 ## Models Compared
 
-3 baselines so far (random, centre+median-size, depth-edge antipodal). Phase 2 will add 5 learned models (Redmon-style CNN, ResNet-18 regressor, ResNet-18 + rotation classifier, GG-CNN, small ViT).
+8 total: 3 Phase-1 baselines (random, centre+median-size, depth-edge antipodal) + 5 Phase-2 learned models (M1 TinyRedmonCNN, M2 ResNet-18 regressor, M3 ResNet-18 hybrid head, M4 GGCNNTiny, M5 TinyViT). Champion is M2 at 55.0 %.
