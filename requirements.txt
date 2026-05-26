@@ -12,3 +12,5 @@ jupyter>=1.0
 ipykernel>=6.29
 notebook>=7.2
 nbconvert>=7.16
+torch>=2.4
+torchvision>=0.19
