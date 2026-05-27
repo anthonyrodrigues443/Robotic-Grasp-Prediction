@@ -42,7 +42,7 @@ from __future__ import annotations
 
 import math
 import random
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
@@ -122,7 +122,7 @@ def _depth_to_normalised_channel(depth: np.ndarray, target_size: int = INPUT_SIZ
 
 def _rotate_image_array(img: np.ndarray, angle_deg: float) -> np.ndarray:
     """Rotate a HxWx3 float [0,1] image around its center by angle_deg
-    (CCW). Out-of-frame pixels are filled with the edge value."""
+    (CCW). Out-of-frame pixels are filled with black (0, 0, 0)."""
     pil = Image.fromarray((img * 255).astype(np.uint8))
     pil = pil.rotate(angle_deg, resample=Image.BILINEAR, expand=False,
                      fillcolor=(0, 0, 0))
@@ -143,12 +143,8 @@ def _rotate_grasp(g: GraspRect, angle_deg: float, cx_pivot: float, cy_pivot: flo
     R = np.array([[cos_a, sin_a], [-sin_a, cos_a]])
     pivot = np.array([cx_pivot, cy_pivot])
     new_corners = (g.corners - pivot) @ R.T + pivot
-    new_angle = g.angle_rad - rad
-    # wrap to [-pi/2, pi/2)
-    while new_angle >= math.pi / 2:
-        new_angle -= math.pi
-    while new_angle < -math.pi / 2:
-        new_angle += math.pi
+    # Angle is re-derived from the rotated corners by GraspRect, so we don't
+    # need to wrap it here.
     return GraspRect(corners=new_corners, label=g.label)
 
 
@@ -192,7 +188,6 @@ class CornellGraspDatasetP3(Dataset):
         self._rng = random.Random(self.seed)
         self._scale_x = INPUT_SIZE / IMG_W
         self._scale_y = INPUT_SIZE / IMG_H
-        self._depth_loader = DepthAntipodalBaseline()
 
     def __len__(self) -> int:
         return len(self.samples)
