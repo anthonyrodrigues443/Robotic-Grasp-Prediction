@@ -1,0 +1,24 @@
+{
+  "phase_2_M2_ceiling_obj_wise": 0.55,
+  "phase_3_best_obj_wise": 0.77,
+  "phase_3_best_obj_wise_name": "E3.5_all_knobs",
+  "gain_vs_P2_obj_wise_pp": 21.999999999999996,
+  "data_multiplier": 3.925,
+  "lenz2014_object_wise": 0.739,
+  "redmon2015_object_wise": 0.849,
+  "cao2023_sota_image_wise": 0.994,
+  "per_experiment_accuracy": {
+    "E3.1_full_data": 0.73,
+    "E3.2_rot_aug": 0.7,
+    "E3.3_depth_blue": 0.71,
+    "E3.4_multi_pos": 0.73,
+    "E3.5_all_knobs": 0.77
+  },
+  "per_experiment_delta_vs_P2": {
+    "E3.1_full_data": 0.17999999999999994,
+    "E3.2_rot_aug": 0.1499999999999999,
+    "E3.3_depth_blue": 0.15999999999999992,
+    "E3.4_multi_pos": 0.17999999999999994,
+    "E3.5_all_knobs": 0.21999999999999997
+  }
+}

@@ -194,3 +194,17 @@ folder 03 test (100 images, 542 positives).
 - `results/phase1_failure_decomposition.png`
 - `results/phase1_depth_baseline_qualitative.png`
 - `reports/day1_phase1_report.md`
+
+## Phase 3 — full data + rotation aug + depth channel + multi-positive (2026-05-27)
+
+Dataset: Cornell full 885 images (extracted archives 04–10). Object-wise: train=785, test=100 (folder 03 held out, same as Phase 2).
+
+| Experiment | Accuracy | Δ vs P2 M2 (0.550) | Median IoU | Median angle err |
+|---|---:|---:|---:|---:|
+| E3.1_full_data | 0.730 | +0.180 | 0.405 | 10.5° |
+| E3.2_rot_aug | 0.700 | +0.150 | 0.369 | 8.0° |
+| E3.3_depth_blue | 0.710 | +0.160 | 0.420 | 9.9° |
+| E3.4_multi_pos | 0.730 | +0.180 | 0.428 | 5.4° |
+| E3.5_all_knobs | 0.770 | +0.220 | 0.404 | 4.9° |
+
+**Object-wise champion:** E3.5_all_knobs at 0.770  (Δ +0.220 vs Phase-2 M2).
