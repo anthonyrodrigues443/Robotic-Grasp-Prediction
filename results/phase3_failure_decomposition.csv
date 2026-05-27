@@ -1,0 +1,6 @@
+experiment,n,correct,angle_ok_iou_low,iou_ok_angle_wrong,both_wrong
+E3.1_full_data,100,73,10,8,9
+E3.2_rot_aug,100,70,17,6,7
+E3.3_depth_blue,100,71,10,8,11
+E3.4_multi_pos,100,73,15,4,8
+E3.5_all_knobs,100,77,14,3,6

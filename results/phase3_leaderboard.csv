@@ -1,0 +1,18 @@
+experiment,split,accuracy,median_iou,median_angle_err_deg,inference_ms,train_seconds,n_test
+PUBLISHED: Bilateral_Cao_2023_image_wise,object/image-wise (full Cornell),0.994,,,,,
+PUBLISHED: Bilateral_Cao_2023_object_wise,object/image-wise (full Cornell),0.978,,,,,
+PUBLISHED: Redmon_Angelova_2015_object_wise,object/image-wise (full Cornell),0.849,,,,,
+PUBLISHED: Redmon_Angelova_2015_image_wise,object/image-wise (full Cornell),0.844,,,,,
+E3.5_all_knobs,object-wise,0.77,0.40360010506562716,4.912155043829683,27.664649486541748,352.8591060638428,100.0
+PUBLISHED: Lenz_2014_image_wise,object/image-wise (full Cornell),0.756,,,,,
+PUBLISHED: Lenz_2014_object_wise,object/image-wise (full Cornell),0.739,,,,,
+PUBLISHED: GGCNN_Morrison_2018,object/image-wise (full Cornell),0.73,,,,,
+E3.1_full_data,object-wise,0.73,0.40530937436644265,10.47558932861417,28.21223020553589,318.9967591762543,100.0
+E3.4_multi_pos,object-wise,0.73,0.42843309941430896,5.3791984970066125,23.255269527435303,298.7432930469513,100.0
+E3.3_depth_blue,object-wise,0.71,0.42017474263983523,9.912233798155338,23.481669425964355,293.7953782081604,100.0
+E3.2_rot_aug,object-wise,0.7,0.36903200616326776,7.991416553846749,22.31955051422119,322.6043791770935,100.0
+P2 ref: M2_ResNet18Regressor,object-wise (P2 300-img subset),0.55,0.2934479479361577,6.078366634803351,19.099853038787842,170.75215482711792,100.0
+P2 ref: M5_TinyViT,object-wise (P2 300-img subset),0.47,0.3638960955473023,36.82304414008568,14.110300540924072,165.4975938796997,100.0
+P2 ref: M1_TinyRedmonCNN,object-wise (P2 300-img subset),0.35,0.15564507473214384,11.863827553693408,8.832066059112549,126.75577712059021,100.0
+P2 ref: M3_ResNet18Hybrid,object-wise (P2 300-img subset),0.13,0.004372184780237097,8.641564477011874,11.60170316696167,169.20536613464355,100.0
+P2 ref: M4_GGCNNTiny,object-wise (P2 300-img subset),0.0,0.0,44.04342389477409,12.024424076080322,201.57547307014465,100.0
