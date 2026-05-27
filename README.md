@@ -3,10 +3,11 @@
 > Predict 2-D oriented grasp rectangles from RGB-D images of household objects
 > on a table. Cornell Grasping Dataset; Jiang IoU > 0.25 / angle < 30° metric.
 
-**Status:** Phase 2 / 7 — five CNN/ViT architectures trained head-to-head on the
-same Phase-1 object-wise split. Champion is the ImageNet-pretrained ResNet-18
-regressor at 55.0 % Jiang accuracy (+38 pp over the Phase-1 depth-antipodal
-baseline). Numbers in [results/EXPERIMENT_LOG.md](results/EXPERIMENT_LOG.md).
+**Status:** Phase 3 / 7 — four orthogonal levers tested on top of the Phase-2 M2
+ceiling (4× training data, rotation aug, depth-as-blue, multi-positive loss).
+Champion is the all-knobs union E3.5 at **77.0 % Jiang accuracy** (+22 pp over
+Phase-2 M2; crosses Lenz 2014 obj-wise 73.9 %; 8 pp short of Redmon 2015).
+Numbers in [results/EXPERIMENT_LOG.md](results/EXPERIMENT_LOG.md).
 Each phase builds on the research log below.
 
 ## Research log
@@ -15,7 +16,7 @@ Each phase builds on the research log below.
 |------:|:---:|:-----:|:--------:|:------:|
 | 1 | Mon 2026-05-25 | Domain research + dataset + 3 baselines | [phase1_baseline.ipynb](notebooks/phase1_baseline.ipynb) | [day1_phase1_report.md](reports/day1_phase1_report.md) |
 | 2 | Tue 2026-05-26 | Multi-model experiment (CNN regressor, ResNet, GG-CNN, ViT, …) | [phase2_multi_model.ipynb](notebooks/phase2_multi_model.ipynb) | [day2_phase2_report.md](reports/day2_phase2_report.md) |
-| 3 | Wed 2026-05-27 | Feature engineering + deep dive on top models | — | — |
+| 3 | Wed 2026-05-27 | Full data + rotation aug + depth channel + multi-positive loss | [phase3_full_data_and_aug.ipynb](notebooks/phase3_full_data_and_aug.ipynb) | [day3_phase3_report.md](reports/day3_phase3_report.md) |
 | 4 | Thu 2026-05-28 | Hyperparameter tuning + error analysis | — | — |
 | 5 | Fri 2026-05-29 | Advanced techniques + ablation + LLM head-to-head | — | — |
 | 6 | Sat 2026-05-30 | Production pipeline + Gradio UI | — | — |
@@ -127,18 +128,44 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/phase1_baseline.ip
 </tr>
 </table>
 
+### Phase 3: Full Data + Rotation Aug + Depth Channel + Multi-Positive Loss — 2026-05-27
+
+<table>
+<tr>
+<td valign="top" width="38%">
+
+**What was tested:** Four orthogonal levers on top of Phase-2 M2 — (a) 4× larger training set (200 → 785 imgs, Cornell archives 04–10), (b) rotation aug ±30° with grasp transform, (c) depth-as-blue input substitution (Lenz 2014), (d) multi-positive closest-GT loss. Five experiments: E3.1 control 0.730, E3.2 rot 0.700, E3.3 depth 0.710, E3.4 multi-pos 0.730, **E3.5 all-knobs union 0.770 (+22 pp vs Phase-2 M2)**.<br><br>
+**What worked best:** E3.5 — the union of rot + depth + multi-pos. Each single knob *underperformed or tied* the E3.1 full-data control; combined they compound super-additively into +4 pp over E3.1 and beat Lenz 2014 obj-wise (0.739).
+
+</td>
+<td align="center" width="24%">
+
+<img src="results/phase3_leaderboard.png" width="220">
+
+</td>
+<td valign="top" width="38%">
+
+**Key Insight:** Phase 2 was **data-starved, not model-starved** — same arch / optimizer / loss, just 585 more images, takes accuracy 0.550 → 0.730 (82 % of the total Phase-3 lift). Hyperparameter and architecture changes weren't where the easy wins lived.<br><br>
+**Surprise:** Super-additivity of weak regularisers. Rot aug alone HURTS (−3 pp), depth-as-blue alone HURTS (−2 pp), multi-pos alone is neutral — but all three together beat every single-knob run by 4 pp. Three orthogonal regularisation channels compound where each subtracts on its own.<br><br>
+**Research:** Lenz 2014 — depth-as-blue substitution (adopted in E3.3, marginally hurt accuracy but lifted median IoU as predicted). Redmon 2015 — rotation/translation aug (adopted in E3.2, hurt on Cornell because Phase-1's "orientation isn't the hard part" finding survives). Morrison 2018 GG-CNN — multi-positive supervision (adopted via cheaper closest-GT loss in E3.4, accuracy-neutral but best single-knob median IoU).<br><br>
+**Best Model So Far:** E3.5 all-knobs ResNet-18 — **77.0 %** Jiang accuracy on the object-wise split (median IoU 0.404, median angle err 4.9°).
+
+</td>
+</tr>
+</table>
+
 ## Current Status
 
-Phase 2 complete. Current best: **M2 ResNet-18 regressor at 55.0 % Jiang accuracy** (object-wise split, n=100), median angle err 6.1°, median IoU 0.293. +38 pp over the Phase-1 B3 baseline; missed the "+50 pp" pre-registered target by 12 pp. Phase 3 (Wed 2026-05-27) retrains M2 on the full 885-image benchmark (archives 04–10 already on disk) with rotation augmentation, depth as a 4th channel, and a multi-positive closest-GT loss; floor is to clear 55 % by ≥ 10 pp.
+Phase 3 complete. Current best: **E3.5 all-knobs ResNet-18 at 77.0 % Jiang accuracy** (object-wise split, n=100), median angle err 4.9°, median IoU 0.404. +22 pp over Phase-2 M2 (target was +10 pp; delivered +22 pp), crosses Lenz 2014 obj-wise (73.9 %) and GG-CNN 2018 (73 %), 8 pp short of Redmon 2015 (84.9 %). Phase 4 (Thu 2026-05-28) runs an Optuna sweep on the E3.5 stack (`lr`, `weight_decay`, `rotation_deg`, `batch_size`, `epochs`) plus a 4-channel RGB+depth variant to test whether the depth signal is real but was masked by the blue-channel loss. Target: close the 8-pp gap to Redmon 2015.
 
 ## Key Findings
 
-1. **Continuous sin/cos angle regression beats Redmon's 18-way angle classification by 42 pp on the same ResNet-18 backbone** — M2 = 55 %, M3 = 13 %. Joint CE+MSE loss on 200 images / 18 bins crushes the regression branch; the unified 6-vec representation sidesteps the entire failure mode.
-2. **ImageNet pretraining is worth +20 pp on 200 grasp images** — M2 (pretrained) vs M1 (from scratch, same regression head) = 55 % vs 35 %.
-3. **ViTs and CNNs have dual failure modes.** M5 TinyViT highest median IoU (0.364) + worst angle err (36.8°); M2 ResNet-18 the inverted profile. Phase-1's "localisation is the bottleneck" framing survives for CNNs but **inverts for transformers** at this scale.
-4. Orientation is not the bottleneck on Cornell — 27 % of M2's failures are still "angle ok, IoU too low"; the CV→CNN gap closed the "both wrong" bucket (50 %→10 %), not the localisation one.
-5. The Jiang IoU∧angle metric is brutal in expectation — random chance is 1 %, not the 5–15 % a naive marginals-multiply estimate predicts.
+1. **Super-additivity of weak regularisers.** Rotation aug, depth-as-blue, and multi-positive loss each *underperform or tie* the E3.1 full-data control (0.730) in isolation, but their union (E3.5) hits 0.770 — +4 pp over every single-knob run and crosses Lenz 2014. Three orthogonal regularisation channels compound where each subtracts on its own.
+2. **Phase 2 was data-starved, not model-starved.** Same architecture, same optimizer, same loss — just 585 more training images (200 → 785) takes accuracy 0.550 → 0.730, closing 82 % of the total Phase-3 gap with zero new ideas.
+3. **Continuous sin/cos angle regression beats Redmon's 18-way angle classification by 42 pp on the same ResNet-18 backbone** — Phase-2 M2 = 55 %, M3 = 13 %. The unified 6-vec representation sidesteps the entire CE-on-11-examples-per-bin failure mode.
+4. **ImageNet pretraining is worth +20 pp on 200 grasp images** — Phase-2 M2 (pretrained) vs M1 (from scratch, same regression head) = 55 % vs 35 %.
+5. **Orientation is not the bottleneck on Cornell — confirmed triply.** Phase-1 baselines, Phase-2 CNN failure decomposition, and Phase-3 rotation-aug ablation all show "angle within 30°, IoU too low" as the dominant failure mode. Rotation aug on top of E3.1 actually HURTS (−3 pp) — the model spending capacity on rotation invariance it never needs at test trades against spatial localisation.
 
 ## Models Compared
 
-8 total: 3 Phase-1 baselines (random, centre+median-size, depth-edge antipodal) + 5 Phase-2 learned models (M1 TinyRedmonCNN, M2 ResNet-18 regressor, M3 ResNet-18 hybrid head, M4 GGCNNTiny, M5 TinyViT). Champion is M2 at 55.0 %.
+13 total: 3 Phase-1 baselines (random, centre+median-size, depth-edge antipodal) + 5 Phase-2 learned models (M1 TinyRedmonCNN, M2 ResNet-18 regressor, M3 ResNet-18 hybrid head, M4 GGCNNTiny, M5 TinyViT) + 5 Phase-3 ablations on the M2 stack (E3.1 full-data control, E3.2 +rotation aug, E3.3 +depth-as-blue, E3.4 +multi-positive loss, E3.5 all-knobs union). Champion is **E3.5 at 77.0 %**.
