@@ -219,6 +219,17 @@ class CornellGraspDatasetP3(Dataset):
         new_corners = new_corners[[1, 0, 3, 2]]
         return GraspRect(corners=new_corners, label=g.label)
 
+    @staticmethod
+    def _hflip_grasp_original(g: GraspRect) -> GraspRect:
+        # exact Phase-2 mirror in the original 640x480 frame
+        return make_rect(
+            cx=IMG_W - g.cx,
+            cy=g.cy,
+            w=g.width,
+            h=g.height,
+            angle_rad=-g.angle_rad,
+        )
+
     def _resize_grasps(self, grasps: list[GraspRect]) -> list[GraspRect]:
         """Project each grasp from 640x480 → 224x224 (same as encode_target
         does for the single chosen positive, but applied to every positive so
@@ -261,20 +272,27 @@ class CornellGraspDatasetP3(Dataset):
     def __getitem__(self, idx: int):
         s = self.samples[idx]
         rgb = self._load_rgb(s.rgb_path)
-        positives_224 = self._resize_grasps(s.positives)
+        use_rot_aug = self.augment and self.augment_rot_deg > 0
 
         # optional rotation
-        rot_deg = 0.0
-        if self.augment and self.augment_rot_deg > 0:
+        if use_rot_aug:
+            positives = self._resize_grasps(s.positives)
+            encode = self._encode_224
             rot_deg = self._rng.uniform(-self.augment_rot_deg, self.augment_rot_deg)
             rgb = _rotate_image_array(rgb, rot_deg)
             pivot = INPUT_SIZE / 2.0
-            positives_224 = [_rotate_grasp(g, rot_deg, pivot, pivot) for g in positives_224]
+            positives = [_rotate_grasp(g, rot_deg, pivot, pivot) for g in positives]
+        else:
+            positives = list(s.positives)
+            encode = lambda g: encode_target(g, self._scale_x, self._scale_y)
 
         # optional hflip (Phase-2 parity)
         if self.augment and self._rng.random() < 0.5:
             rgb = rgb[:, ::-1, :].copy()
-            positives_224 = [self._hflip_grasp(g) for g in positives_224]
+            if use_rot_aug:
+                positives = [self._hflip_grasp(g) for g in positives]
+            else:
+                positives = [self._hflip_grasp_original(g) for g in positives]
 
         # optional depth-blue substitution
         if self.use_depth_blue:
@@ -282,8 +300,8 @@ class CornellGraspDatasetP3(Dataset):
             rgb[:, :, 2] = depth  # replace blue
 
         # primary target = most central positive
-        primary = self._central(positives_224)
-        target_primary = self._encode_224(primary)
+        primary = self._central(positives)
+        target_primary = encode(primary)
         x = torch.from_numpy(_imagenet_normalize(rgb))
         t = torch.from_numpy(target_primary)
 
@@ -291,7 +309,7 @@ class CornellGraspDatasetP3(Dataset):
             return x, t, idx
 
         # multi-positive: pad/truncate to MULTI_POS_MAX
-        targets = [self._encode_224(g) for g in positives_224][:MULTI_POS_MAX]
+        targets = [encode(g) for g in positives][:MULTI_POS_MAX]
         n_real = len(targets)
         while len(targets) < MULTI_POS_MAX:
             targets.append(target_primary)  # pad with primary (a real target)
