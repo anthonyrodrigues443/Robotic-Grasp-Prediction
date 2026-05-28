@@ -1,0 +1,17 @@
+{
+  "tuned_vs_e35": {
+    "tuned": 0.78,
+    "e35": 0.77,
+    "delta": 0.010000000000000009
+  },
+  "depth_channel_test": {
+    "none_E3.1": 0.73,
+    "depth_blue_E3.3": 0.71,
+    "depth_4ch_clean": 0.7
+  },
+  "image_wise": {
+    "ours_E35cfg": 0.7570621468926554,
+    "lenz_2014": 0.756,
+    "redmon_2015": 0.844
+  }
+}

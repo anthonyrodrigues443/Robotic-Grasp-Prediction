@@ -1,0 +1,11 @@
+{
+  "best_params": {
+    "lr": 0.0011973917635685037,
+    "weight_decay": 0.0002607024758370766,
+    "rotation_deg": 30,
+    "batch_size": 16
+  },
+  "best_val_acc": 0.94,
+  "proxy_epochs": 15,
+  "n_trials": 11
+}

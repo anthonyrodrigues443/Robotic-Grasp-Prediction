@@ -1,0 +1,14 @@
+rank_grp,model,acc,split,note
+phase2,Phase-2 M2 (200-img train),0.55,object,data-starved ceiling
+phase3,E3.1 full-data control,0.73,object,"no depth, no rot"
+phase3,E3.3 depth-as-blue,0.71,object,blue replaced
+phase3,E3.5 all-knobs (Phase-3 champ),0.77,object,rot+depth-blue+multipos
+phase4,"P4 tuned (40ep, Optuna)",0.78,object,"{'lr': 0.0011973917635685037, 'weight_decay': 0.0002607024758370766, 'rotation_deg': 30, 'batch_size': 16}"
+phase4,P4 4-ch depth (clean),0.7,object,"depth=ch4, no rot, single-pos"
+phase4,P4 4-ch depth (all-knobs),0.61,object,depth=ch4 + rot + multipos
+phase4,P4 E3.5-config image-wise,0.7570621468926554,image,random 80/20
+ref,Lenz 2014,0.739,object,published
+ref,Lenz 2014,0.756,image,published
+ref,Redmon 2015,0.849,object,published
+ref,Redmon 2015,0.844,image,published
+ref,Cao 2023 SOTA,0.978,object,published
