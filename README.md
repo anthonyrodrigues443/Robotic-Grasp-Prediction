@@ -3,10 +3,12 @@
 > Predict 2-D oriented grasp rectangles from RGB-D images of household objects
 > on a table. Cornell Grasping Dataset; Jiang IoU > 0.25 / angle < 30° metric.
 
-**Status:** Phase 3 / 7 — four orthogonal levers tested on top of the Phase-2 M2
-ceiling (4× training data, rotation aug, depth-as-blue, multi-positive loss).
-Champion is the all-knobs union E3.5 at **77.0 % Jiang accuracy** (+22 pp over
-Phase-2 M2; crosses Lenz 2014 obj-wise 73.9 %; 8 pp short of Redmon 2015).
+**Status:** Phase 4 / 7 — an 11-trial Optuna sweep (tuned on held-out folder 07)
+plus a clean 4-channel RGB+depth test and error analysis on the Phase-3 E3.5
+champion. New champion is the tuned regressor at **78.0 % Jiang accuracy** (+23 pp
+over Phase-2 M2; crosses Lenz 2014 obj-wise 73.9 %; 6.9 pp short of Redmon 2015).
+Phase 4 also falsified Phase-3's depth hypothesis — depth as a clean 4th channel
+(0.700) loses to plain RGB (0.730), so depth is dropped from production.
 Numbers in [results/EXPERIMENT_LOG.md](results/EXPERIMENT_LOG.md).
 Each phase builds on the research log below.
 
@@ -17,7 +19,7 @@ Each phase builds on the research log below.
 | 1 | Mon 2026-05-25 | Domain research + dataset + 3 baselines | [phase1_baseline.ipynb](notebooks/phase1_baseline.ipynb) | [day1_phase1_report.md](reports/day1_phase1_report.md) |
 | 2 | Tue 2026-05-26 | Multi-model experiment (CNN regressor, ResNet, GG-CNN, ViT, …) | [phase2_multi_model.ipynb](notebooks/phase2_multi_model.ipynb) | [day2_phase2_report.md](reports/day2_phase2_report.md) |
 | 3 | Wed 2026-05-27 | Full data + rotation aug + depth channel + multi-positive loss | [phase3_full_data_and_aug.ipynb](notebooks/phase3_full_data_and_aug.ipynb) | [day3_phase3_report.md](reports/day3_phase3_report.md) |
-| 4 | Thu 2026-05-28 | Hyperparameter tuning + error analysis | — | — |
+| 4 | Thu 2026-05-28 | Hyperparameter tuning + error analysis | [phase4_tuning_error_analysis.ipynb](notebooks/phase4_tuning_error_analysis.ipynb) | [day4_phase4_report.md](reports/day4_phase4_report.md) |
 | 5 | Fri 2026-05-29 | Advanced techniques + ablation + LLM head-to-head | — | — |
 | 6 | Sat 2026-05-30 | Production pipeline + Gradio UI | — | — |
 | 7 | Sun 2026-05-31 | Tests + README polish + final report | — | — |
@@ -154,18 +156,44 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/phase1_baseline.ip
 </tr>
 </table>
 
+### Phase 4: Hyperparameter Tuning + Error Analysis — 2026-05-28
+
+<table>
+<tr>
+<td valign="top" width="38%">
+
+**What was tested:** An 11-trial Optuna sweep (`lr`, `weight_decay`, `rotation_deg`, `batch_size`) on the E3.5 stack — tuned on a held-out validation folder (07), scored on test folder 03 exactly once — plus a clean 4-channel RGB+depth test and an image-wise split. Tuned champion = **0.780** Jiang accuracy, a new project best (+1 pp over E3.5's 0.770).<br><br>
+**What worked best:** P4 tuned config (`wd=2.6e-4, lr=1.2e-3, rot=30, bs=16`) retrained on the full 785 images at 40 epochs — new object-wise champion at 0.780 (median IoU 0.445, median angle err 5.6°).
+
+</td>
+<td align="center" width="24%">
+
+<img src="results/phase4_leaderboard.png" width="220">
+
+</td>
+<td valign="top" width="38%">
+
+**Key Insight:** Tuning is near-saturated — a clean held-out sweep buys only +1 pp and the gap to Redmon 2015 (0.849) still sits at 6.9 pp. The residual ceiling is **localisation** (the angle-ok / IoU-too-low cluster), not orientation (median angle err 5.6°). Closing it needs a per-pixel detector, not more tuning of a global-regression head.<br><br>
+**Surprise:** Phase 3's depth hypothesis is **falsified**. Depth as a clean 4th channel (RGB kept intact) scores 0.700 — *worse* than both no-depth (0.730) and depth-as-blue (0.710). Re-initialising conv1 perturbs the ImageNet stem (this project's strongest lever) more than noisy Kinect depth helps. An honest reversal of last session.<br><br>
+**Research:** Redmon & Angelova 2015 — same-paradigm 0.849 is the honest target the 8-pp gap chases. Lenz 2014 — depth-as-channel trick stress-tested and rejected on the Jiang metric. Akiba 2019 (Optuna TPE) — the cheap held-out sweep pattern.<br><br>
+**Best Model So Far:** P4 tuned ResNet-18 regressor — **78.0 %** Jiang accuracy on the object-wise split (median IoU 0.445, median angle err 5.6°).
+
+</td>
+</tr>
+</table>
+
 ## Current Status
 
-Phase 3 complete. Current best: **E3.5 all-knobs ResNet-18 at 77.0 % Jiang accuracy** (object-wise split, n=100), median angle err 4.9°, median IoU 0.404. +22 pp over Phase-2 M2 (target was +10 pp; delivered +22 pp), crosses Lenz 2014 obj-wise (73.9 %) and GG-CNN 2018 (73 %), 8 pp short of Redmon 2015 (84.9 %). Phase 4 (Thu 2026-05-28) runs an Optuna sweep on the E3.5 stack (`lr`, `weight_decay`, `rotation_deg`, `batch_size`, `epochs`) plus a 4-channel RGB+depth variant to test whether the depth signal is real but was masked by the blue-channel loss. Target: close the 8-pp gap to Redmon 2015.
+Phase 4 complete. Current best: **P4 tuned ResNet-18 regressor at 78.0 % Jiang accuracy** (object-wise split, n=100), median angle err 5.6°, median IoU 0.445 — a new project best (+1 pp over the Phase-3 E3.5 champion via an 11-trial Optuna sweep tuned on held-out folder 07). +23 pp over Phase-2 M2, crosses Lenz 2014 obj-wise (73.9 %), 6.9 pp short of Redmon 2015 (84.9 %); image-wise ties Lenz 2014 (75.7 % vs 75.6 %). Phase 4 also **falsified** Phase-3's depth hypothesis: depth as a clean 4th channel scores 0.700, below no-depth (0.730), so depth is being dropped from the production model. The residual ceiling is localisation (IoU), not angle — global-regression heads saturate ~0.78. Phase 5 (Fri 2026-05-29) switches paradigm to a per-pixel grasp-quality head (GG-CNN / GR-ConvNet) plus a frontier-LLM head-to-head, to attack the localisation ceiling directly.
 
 ## Key Findings
 
-1. **Super-additivity of weak regularisers.** Rotation aug, depth-as-blue, and multi-positive loss each *underperform or tie* the E3.1 full-data control (0.730) in isolation, but their union (E3.5) hits 0.770 — +4 pp over every single-knob run and crosses Lenz 2014. Three orthogonal regularisation channels compound where each subtracts on its own.
-2. **Phase 2 was data-starved, not model-starved.** Same architecture, same optimizer, same loss — just 585 more training images (200 → 785) takes accuracy 0.550 → 0.730, closing 82 % of the total Phase-3 gap with zero new ideas.
-3. **Continuous sin/cos angle regression beats Redmon's 18-way angle classification by 42 pp on the same ResNet-18 backbone** — Phase-2 M2 = 55 %, M3 = 13 %. The unified 6-vec representation sidesteps the entire CE-on-11-examples-per-bin failure mode.
-4. **ImageNet pretraining is worth +20 pp on 200 grasp images** — Phase-2 M2 (pretrained) vs M1 (from scratch, same regression head) = 55 % vs 35 %.
-5. **Orientation is not the bottleneck on Cornell — confirmed triply.** Phase-1 baselines, Phase-2 CNN failure decomposition, and Phase-3 rotation-aug ablation all show "angle within 30°, IoU too low" as the dominant failure mode. Rotation aug on top of E3.1 actually HURTS (−3 pp) — the model spending capacity on rotation invariance it never needs at test trades against spatial localisation.
+1. **Depth doesn't help this metric — three experiments now agree, and Phase 4 falsified the "real but masked" excuse.** Phase 3 blamed depth-as-blue's −2 pp on losing the blue colour channel; Phase 4's clean 4-channel test (RGB kept intact) lands at 0.700, *worse* than both no-depth (0.730) and depth-as-blue (0.710). Re-initialising conv1 to ingest depth perturbs the ImageNet stem — this project's single strongest lever (pretrained M2 vs from-scratch M1 = +20 pp) — more than noisy Kinect depth can repay. An honest reversal of the prior session.
+2. **Super-additivity of weak regularisers.** Rotation aug, depth-as-blue, and multi-positive loss each *underperform or tie* the E3.1 full-data control (0.730) in isolation, but their union (E3.5) hits 0.770 — +4 pp over every single-knob run and crosses Lenz 2014. Three orthogonal regularisation channels compound where each subtracts on its own.
+3. **Phase 2 was data-starved, not model-starved.** Same architecture, same optimizer, same loss — just 585 more training images (200 → 785) takes accuracy 0.550 → 0.730, closing 82 % of the total Phase-3 gap with zero new ideas.
+4. **Continuous sin/cos angle regression beats Redmon's 18-way angle classification by 42 pp on the same ResNet-18 backbone** — Phase-2 M2 = 55 %, M3 = 13 %. The unified 6-vec representation sidesteps the entire CE-on-11-examples-per-bin failure mode.
+5. **The ceiling is localisation, not orientation — and tuning can't move it.** Phase-1 baselines, Phase-2/3 failure decomposition, and Phase-4 error analysis all show "angle within 30°, IoU too low" as the dominant failure mode (median angle err 5.6°). An 11-trial Optuna sweep on a clean held-out fold buys only +1 pp (0.770 → 0.780) — the third tuning-ceiling result in this portfolio. Closing the 6.9-pp gap to Redmon needs a different paradigm (per-pixel / anchor-based detector), not more knobs.
 
 ## Models Compared
 
-13 total: 3 Phase-1 baselines (random, centre+median-size, depth-edge antipodal) + 5 Phase-2 learned models (M1 TinyRedmonCNN, M2 ResNet-18 regressor, M3 ResNet-18 hybrid head, M4 GGCNNTiny, M5 TinyViT) + 5 Phase-3 ablations on the M2 stack (E3.1 full-data control, E3.2 +rotation aug, E3.3 +depth-as-blue, E3.4 +multi-positive loss, E3.5 all-knobs union). Champion is **E3.5 at 77.0 %**.
+17 total: 3 Phase-1 baselines (random, centre+median-size, depth-edge antipodal) + 5 Phase-2 learned models (M1 TinyRedmonCNN, M2 ResNet-18 regressor, M3 ResNet-18 hybrid head, M4 GGCNNTiny, M5 TinyViT) + 5 Phase-3 ablations on the M2 stack (E3.1 full-data control, E3.2 +rotation aug, E3.3 +depth-as-blue, E3.4 +multi-positive loss, E3.5 all-knobs union) + 4 Phase-4 runs (P4 tuned 40-ep champion, P4 tuned 25-ep ablation, P4 4-channel depth clean, P4 4-channel all-knobs), plus an 11-trial Optuna sweep and an image-wise retrain of the E3.5 config. Champion is **P4 tuned at 78.0 %**.

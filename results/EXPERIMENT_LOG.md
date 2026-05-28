@@ -208,3 +208,19 @@ Dataset: Cornell full 885 images (extracted archives 04–10). Object-wise: trai
 | E3.5_all_knobs | 0.770 | +0.220 | 0.404 | 4.9° |
 
 **Object-wise champion:** E3.5_all_knobs at 0.770  (Δ +0.220 vs Phase-2 M2).
+
+## Phase 4 - Optuna tuning + error analysis (2026-05-28)
+
+Protocol: object-wise. TEST=folder 03 (n=100), VAL=folder 07 (Optuna objective), SEARCH-TRAIN=685, FULL-TRAIN=785. Optuna: 11 trials, 15-epoch proxy, TPESampler(seed=42).
+
+**Best config:** `{'lr': 0.0011973917635685037, 'weight_decay': 0.0002607024758370766, 'rotation_deg': 30, 'batch_size': 16}` (val_acc=0.940).
+
+| Experiment | Split | Accuracy | delta vs E3.5 (0.770) | Median IoU |
+|---|---|---:|---:|---:|
+| P4 tuned (40ep) | object | 0.780 | +0.010 | 0.445 |
+| P4 tuned (25ep, ablation) | object | 0.750 | -0.020 | 0.404 |
+| P4 4-ch depth (clean) | object | 0.700 | -0.070 | 0.402 |
+| P4 4-ch depth (all-knobs) | object | 0.610 | -0.160 | 0.324 |
+| P4 E3.5-cfg image-wise | image | 0.757 | -0.013 | 0.391 |
+
+Failure decomposition (wrong/100): E3.5={'angle_ok_iou_low': 14, 'iou_ok_angle_wrong': 3, 'both_wrong': 6}, tuned={'angle_ok_iou_low': 10, 'iou_ok_angle_wrong': 6, 'both_wrong': 6}.
