@@ -11,9 +11,7 @@ from ImageNet pretraining, the depth filter seeded from the mean RGB filter).
 only changes the channel-assembly step when ``use_depth_4ch=True``. Everything
 else (rotation aug, hflip, multi-positive routing, the cached depth loader) is
 inherited unchanged so the ONLY variable vs E3.3 (depth-as-blue) is whether the
-blue channel is preserved. Depth is loaded with the exact same cached,
-un-rotated path as Phase-3's depth-blue so the comparison isolates channel
-placement and nothing else.
+blue channel is preserved.
 """
 from __future__ import annotations
 
@@ -21,6 +19,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import torch
+from PIL import Image
 
 from dataset import INPUT_SIZE, _imagenet_normalize
 from dataset_phase3 import CornellGraspDatasetP3, MULTI_POS_MAX
@@ -31,6 +30,13 @@ from dataset_phase3 import CornellGraspDatasetP3, MULTI_POS_MAX
 # channels rather than dominating or vanishing.
 _DEPTH_MEAN = 0.5
 _DEPTH_STD = 0.225
+
+
+def _rotate_depth_array(depth: np.ndarray, angle_deg: float) -> np.ndarray:
+    """Rotate an HxW float [0,1] depth channel around image centre."""
+    pil = Image.fromarray((np.clip(depth, 0.0, 1.0) * 255).astype(np.uint8), mode="L")
+    pil = pil.rotate(angle_deg, resample=Image.BILINEAR, expand=False, fillcolor=0)
+    return np.asarray(pil, dtype=np.float32) / 255.0
 
 
 @dataclass
@@ -70,17 +76,22 @@ class CornellGraspDatasetP4(CornellGraspDatasetP3):
             positives = list(s.positives)
             encode = lambda g: encode_target(g, self._scale_x, self._scale_y)
 
-        if self.augment and self._rng.random() < 0.5:
+        do_hflip = self.augment and self._rng.random() < 0.5
+        if do_hflip:
             rgb = rgb[:, ::-1, :].copy()
             if use_rot_aug:
                 positives = [self._hflip_grasp(g) for g in positives]
             else:
                 positives = [self._hflip_grasp_original(g) for g in positives]
 
-        # depth loaded with the SAME cached, un-rotated path as the Phase-3
-        # depth-blue trick — the only thing that differs from E3.3 is that we
-        # *append* it rather than overwrite the blue channel.
+        # depth is loaded through the same cached path as Phase-3 depth-blue,
+        # then receives the same geometric transforms as RGB so channels stay
+        # spatially aligned in 4-channel mode.
         depth = self._load_depth(s.pcd_path)                       # (H, W) in [0, 1]
+        if use_rot_aug:
+            depth = _rotate_depth_array(depth, rot_deg)
+        if do_hflip:
+            depth = depth[:, ::-1].copy()
         depth_norm = (depth - _DEPTH_MEAN) / _DEPTH_STD             # standardise
         rgb_chw = _imagenet_normalize(rgb)                         # (3, H, W)
         x4 = np.concatenate(
