@@ -1,0 +1,6 @@
+model,accuracy,median_iou,median_angle_err,ms_per_img
+"P4 tuned champion (Phase-4, ref)",0.78,0.445,5.6,27.7
+GlobalReg_ResNet18 (control),0.69,0.417,8.0,11.2
+ResNet18-FCN (pretrained),0.42,0.251,8.5,11.3
+GGCNN-v2 (scratch),0.0,0.0,40.6,8.8
+GRConvNet-lite (scratch),0.0,0.0,21.9,9.6

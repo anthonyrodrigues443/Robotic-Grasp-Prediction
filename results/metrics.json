@@ -489,5 +489,122 @@
         "both_wrong": 6
       }
     }
+  },
+  "phase_5": {
+    "date": "2026-05-29",
+    "task": "per-pixel paradigm switch + frontier-LLM head-to-head",
+    "metric_primary": "Jiang IoU>0.25 & angle<30 (object-wise, folder 03)",
+    "models": {
+      "GlobalReg_ResNet18 (control)": {
+        "accuracy": 0.69,
+        "median_iou": 0.417,
+        "median_angle_err": 8.0,
+        "inference_ms_per_image": 11.2
+      },
+      "GGCNN-v2 (scratch)": {
+        "accuracy": 0.0,
+        "median_iou": 0.0,
+        "median_angle_err": 40.6,
+        "inference_ms_per_image": 8.8
+      },
+      "GRConvNet-lite (scratch)": {
+        "accuracy": 0.0,
+        "median_iou": 0.0,
+        "median_angle_err": 21.9,
+        "inference_ms_per_image": 9.6
+      },
+      "ResNet18-FCN (pretrained)": {
+        "accuracy": 0.42,
+        "median_iou": 0.251,
+        "median_angle_err": 8.5,
+        "inference_ms_per_image": 11.3
+      }
+    },
+    "ablation": [
+      {
+        "ablation": "GGCNN-v2 single-blob (no multi-grasp)",
+        "accuracy": 0.04,
+        "vs_base": 0.04
+      },
+      {
+        "ablation": "ResNet18-FCN from scratch (no ImageNet)",
+        "accuracy": 0.19,
+        "vs_base": -0.23
+      },
+      {
+        "ablation": "GRConvNet-lite no skip connection",
+        "accuracy": 0.06,
+        "vs_base": 0.06
+      }
+    ],
+    "gt_roundtrip_ceiling": [
+      {
+        "out_size": 56,
+        "gt_roundtrip_acc": 0.9,
+        "gt_median_iou": 0.393
+      },
+      {
+        "out_size": 112,
+        "gt_roundtrip_acc": 0.99,
+        "gt_median_iou": 0.441
+      },
+      {
+        "out_size": 218,
+        "gt_roundtrip_acc": 1.0,
+        "gt_median_iou": 0.459
+      }
+    ],
+    "best_per_pixel": "ResNet18-FCN (pretrained)",
+    "best_per_pixel_acc": 0.42,
+    "global_control_acc": 0.69,
+    "p4_champion_ref": 0.78,
+    "llm_head_to_head": [
+      {
+        "model": "Custom: Global ResNet18",
+        "n": 40,
+        "accuracy": 0.75,
+        "median_iou": 0.395,
+        "parse_rate": 1.0,
+        "latency_s": 0.017,
+        "cost_per_1k_usd": 0.0
+      },
+      {
+        "model": "codex/gpt-5.5",
+        "n": 40,
+        "accuracy": 0.75,
+        "median_iou": 0.419,
+        "parse_rate": 1.0,
+        "latency_s": 41.015,
+        "cost_per_1k_usd": 50.0
+      },
+      {
+        "model": "Custom: ResNet18-FCN (pretrained)",
+        "n": 40,
+        "accuracy": 0.5,
+        "median_iou": 0.271,
+        "parse_rate": 1.0,
+        "latency_s": 0.029,
+        "cost_per_1k_usd": 0.0
+      },
+      {
+        "model": "claude/opus",
+        "n": 40,
+        "accuracy": 0.25,
+        "median_iou": 0.0,
+        "parse_rate": 1.0,
+        "latency_s": 16.59,
+        "cost_per_1k_usd": 22.5
+      },
+      {
+        "model": "claude/haiku",
+        "n": 40,
+        "accuracy": 0.15,
+        "median_iou": 0.0,
+        "parse_rate": 1.0,
+        "latency_s": 18.135,
+        "cost_per_1k_usd": 1.5
+      }
+    ],
+    "llm_n": 40
   }
 }
