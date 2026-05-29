@@ -3,12 +3,14 @@
 > Predict 2-D oriented grasp rectangles from RGB-D images of household objects
 > on a table. Cornell Grasping Dataset; Jiang IoU > 0.25 / angle < 30° metric.
 
-**Status:** Phase 4 / 7 — an 11-trial Optuna sweep (tuned on held-out folder 07)
-plus a clean 4-channel RGB+depth test and error analysis on the Phase-3 E3.5
-champion. New champion is the tuned regressor at **78.0 % Jiang accuracy** (+23 pp
-over Phase-2 M2; crosses Lenz 2014 obj-wise 73.9 %; 6.9 pp short of Redmon 2015).
-Phase 4 also falsified Phase-3's depth hypothesis — depth as a clean 4th channel
-(0.700) loses to plain RGB (0.730), so depth is dropped from production.
+**Status:** Phase 5 / 7 — built the per-pixel grasp-quality detector (GG-CNN /
+GR-ConvNet / ResNet18-FCN) and tested the Phase-4 paradigm-switch prediction
+head-on. It **falsified cleanly**: with pretraining held constant, the per-pixel
+head scores 0.420 vs the global regressor's 0.690 (−27 pp), so the **P4 tuned
+global regressor at 78.0 % Jiang accuracy** remains champion. Frontier-LLM
+head-to-head: GPT-5.5 ties the custom CNN (0.75 acc) but at ~50,000× the cost;
+Claude models fail the spatial task. Per-pixel models dropped from production,
+kept as a documented negative result.
 Numbers in [results/EXPERIMENT_LOG.md](results/EXPERIMENT_LOG.md).
 Each phase builds on the research log below.
 
@@ -20,7 +22,7 @@ Each phase builds on the research log below.
 | 2 | Tue 2026-05-26 | Multi-model experiment (CNN regressor, ResNet, GG-CNN, ViT, …) | [phase2_multi_model.ipynb](notebooks/phase2_multi_model.ipynb) | [day2_phase2_report.md](reports/day2_phase2_report.md) |
 | 3 | Wed 2026-05-27 | Full data + rotation aug + depth channel + multi-positive loss | [phase3_full_data_and_aug.ipynb](notebooks/phase3_full_data_and_aug.ipynb) | [day3_phase3_report.md](reports/day3_phase3_report.md) |
 | 4 | Thu 2026-05-28 | Hyperparameter tuning + error analysis | [phase4_tuning_error_analysis.ipynb](notebooks/phase4_tuning_error_analysis.ipynb) | [day4_phase4_report.md](reports/day4_phase4_report.md) |
-| 5 | Fri 2026-05-29 | Advanced techniques + ablation + LLM head-to-head | — | — |
+| 5 | Fri 2026-05-29 | Per-pixel paradigm switch + frontier-LLM head-to-head | [phase5_per_pixel_and_llm.ipynb](notebooks/phase5_per_pixel_and_llm.ipynb) | [day5_phase5_report.md](reports/day5_phase5_report.md) |
 | 6 | Sat 2026-05-30 | Production pipeline + Gradio UI | — | — |
 | 7 | Sun 2026-05-31 | Tests + README polish + final report | — | — |
 
@@ -182,18 +184,44 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/phase1_baseline.ip
 </tr>
 </table>
 
+### Phase 5: Per-Pixel Paradigm Switch + Frontier-LLM Head-to-Head — 2026-05-29
+
+<table>
+<tr>
+<td valign="top" width="38%">
+
+**What was tested:** The Phase-4 prediction head-on — does a per-pixel grasp-quality detector beat the global regressor and approach Redmon? A `ResNet18-FCN` sharing the *exact* ImageNet-pretrained backbone of the global regressor (only the output head differs) scored **0.420 vs the global head's 0.690 — a 27 pp LOSS**. Both from-scratch per-pixel nets (GG-CNN-v2, GR-ConvNet-lite) stayed at **0.000** even on 4× data with proper multi-grasp targets.<br><br>
+**What worked best:** The **global-regression head still wins** (0.690 RGB-only control; 0.780 full Phase-4 stack). The paradigm "switch" lowered the ceiling.
+
+</td>
+<td align="center" width="24%">
+
+<img src="results/phase5_leaderboard.png" width="220">
+
+</td>
+<td valign="top" width="38%">
+
+**Key Insight:** Pretraining is the dominant lever for the 4th time — FCN ablation 0.420 → 0.190 from scratch (−0.23, the biggest single effect). The deeper problem: a per-pixel **decoder** has no ImageNet-pretrained equivalent, so the paradigm forfeits this project's strongest lever in exactly the part that localises.<br><br>
+**Surprise:** The paradigm sold as "predict *where* to grasp" localises *worse* — 39 angle-ok/IoU-too-low failures vs the global head's 8. The global regressor offloads localisation onto the pretrained backbone + a 2-param head; the FCN must learn a spatial quality map in an un-pretrained decoder from 785 images.<br><br>
+**Research:** Morrison 2018 (GG-CNN) — multi-grasp targets, why GG-CNN-v2 painted all positives (rescued 0.000→0.040, real but tiny). Kumra 2020 (GR-ConvNet) — residual control, still 0.000 from scratch. Redmon 2015 — the 0.849 global-paradigm target the per-pixel switch was meant to reach but moved *away* from.<br><br>
+**Best Model So Far:** P4 tuned ResNet-18 **global** regressor — **78.0 %** Jiang accuracy (the per-pixel paradigm is documented as a clean negative result).
+
+</td>
+</tr>
+</table>
+
 ## Current Status
 
-Phase 4 complete. Current best: **P4 tuned ResNet-18 regressor at 78.0 % Jiang accuracy** (object-wise split, n=100), median angle err 5.6°, median IoU 0.445 — a new project best (+1 pp over the Phase-3 E3.5 champion via an 11-trial Optuna sweep tuned on held-out folder 07). +23 pp over Phase-2 M2, crosses Lenz 2014 obj-wise (73.9 %), 6.9 pp short of Redmon 2015 (84.9 %); image-wise ties Lenz 2014 (75.7 % vs 75.6 %). Phase 4 also **falsified** Phase-3's depth hypothesis: depth as a clean 4th channel scores 0.700, below no-depth (0.730), so depth is being dropped from the production model. The residual ceiling is localisation (IoU), not angle — global-regression heads saturate ~0.78. Phase 5 (Fri 2026-05-29) switches paradigm to a per-pixel grasp-quality head (GG-CNN / GR-ConvNet) plus a frontier-LLM head-to-head, to attack the localisation ceiling directly.
+Phase 5 complete. Current best is still the **P4 tuned ResNet-18 *global* regressor at 78.0 % Jiang accuracy** (object-wise split, n=100), median IoU 0.445 — Phase 5 **falsified the Phase-4 paradigm-switch prediction**. A `ResNet18-FCN` per-pixel detector sharing the exact pretrained backbone (only the output head differs) scored 0.420 vs the global head's matched RGB-only control 0.690 — a 27 pp **loss**; both from-scratch per-pixel nets (GG-CNN-v2, GR-ConvNet-lite) stayed at 0.000 even on 4× data with proper multi-grasp targets, so Phase 2's GG-CNN 0.0 was the paradigm-without-pretraining, not data starvation. Ablation pins the cause: ImageNet pretraining is worth −0.23 (FCN 0.42→0.19 from scratch), and a per-pixel decoder has no pretrained equivalent. Frontier-LLM head-to-head (n=40): **GPT-5.5 ties the custom CNN on accuracy (0.75) and edges it on median IoU (0.419 vs 0.395)** but at ~2,400× the latency and ~50,000× the cost; both Claude models fail the spatial task (median IoU 0.000 — right angle, wrong place). Phase 6 (Sat 2026-05-30) builds the production pipeline + UI around the **global regressor** (the paradigm that works here); the per-pixel models are dropped from production and kept documented as the negative result.
 
 ## Key Findings
 
-1. **Depth doesn't help this metric — three experiments now agree, and Phase 4 falsified the "real but masked" excuse.** Phase 3 blamed depth-as-blue's −2 pp on losing the blue colour channel; Phase 4's clean 4-channel test (RGB kept intact) lands at 0.700, *worse* than both no-depth (0.730) and depth-as-blue (0.710). Re-initialising conv1 to ingest depth perturbs the ImageNet stem — this project's single strongest lever (pretrained M2 vs from-scratch M1 = +20 pp) — more than noisy Kinect depth can repay. An honest reversal of the prior session.
-2. **Super-additivity of weak regularisers.** Rotation aug, depth-as-blue, and multi-positive loss each *underperform or tie* the E3.1 full-data control (0.730) in isolation, but their union (E3.5) hits 0.770 — +4 pp over every single-knob run and crosses Lenz 2014. Three orthogonal regularisation channels compound where each subtracts on its own.
-3. **Phase 2 was data-starved, not model-starved.** Same architecture, same optimizer, same loss — just 585 more training images (200 → 785) takes accuracy 0.550 → 0.730, closing 82 % of the total Phase-3 gap with zero new ideas.
-4. **Continuous sin/cos angle regression beats Redmon's 18-way angle classification by 42 pp on the same ResNet-18 backbone** — Phase-2 M2 = 55 %, M3 = 13 %. The unified 6-vec representation sidesteps the entire CE-on-11-examples-per-bin failure mode.
-5. **The ceiling is localisation, not orientation — and tuning can't move it.** Phase-1 baselines, Phase-2/3 failure decomposition, and Phase-4 error analysis all show "angle within 30°, IoU too low" as the dominant failure mode (median angle err 5.6°). An 11-trial Optuna sweep on a clean held-out fold buys only +1 pp (0.770 → 0.780) — the third tuning-ceiling result in this portfolio. Closing the 6.9-pp gap to Redmon needs a different paradigm (per-pixel / anchor-based detector), not more knobs.
+1. **The per-pixel paradigm LOSES to global box regression on Cornell, with pretraining held constant — the Phase-4 prediction, falsified.** Same ResNet-18 backbone, same ImageNet weights, only the output head changes: per-pixel maps 0.420 vs global 6-vec 0.690 (−27 pp). Switching paradigm to "attack the localisation ceiling" *lowered* it. Both from-scratch per-pixel nets stay at 0.000 even on 4× data with proper multi-grasp targets — so Phase 2's GG-CNN 0.0 was the paradigm-without-pretraining, not data starvation.
+2. **Pretraining is the dominant lever — the 4th time this project has landed there.** FCN ablation: 0.420 → 0.190 from scratch (−0.23, the single biggest effect measured). The deeper problem is structural — a per-pixel **decoder** has no ImageNet-pretrained equivalent, so the paradigm forfeits the strongest lever in exactly the part of the network that localises. Counterintuitively the per-pixel model has 39 angle-ok/IoU-too-low failures vs the global head's 8.
+3. **A frontier LLM is competitive at grasp localisation but economically absurd.** On n=40, GPT-5.5 *ties* the custom CNN on accuracy (0.75) and edges it on median IoU (0.419 vs 0.395) — from raw pixels, no training — but at ~2,400× the latency (41 s vs 17 ms) and ~50,000× the cost. Both Claude models fail outright (median IoU 0.000): right gripper angle, wrong grasp centre. The free, 17 ms custom CNN is the correct production choice.
+4. **Depth doesn't help this metric — three experiments agree, and Phase 4 falsified the "real but masked" excuse.** A clean 4-channel test (RGB kept intact) lands at 0.700, *worse* than both no-depth (0.730) and depth-as-blue (0.710). Re-initialising conv1 perturbs the ImageNet stem more than noisy Kinect depth can repay — so all Phase-5 models are RGB-only.
+5. **Super-additivity of weak regularisers.** Rotation aug, depth-as-blue, and multi-positive loss each *underperform or tie* the E3.1 full-data control (0.730) in isolation, but their union (E3.5) hits 0.770 — +4 pp over every single-knob run and crosses Lenz 2014. Three orthogonal regularisation channels compound where each subtracts on its own.
 
 ## Models Compared
 
-17 total: 3 Phase-1 baselines (random, centre+median-size, depth-edge antipodal) + 5 Phase-2 learned models (M1 TinyRedmonCNN, M2 ResNet-18 regressor, M3 ResNet-18 hybrid head, M4 GGCNNTiny, M5 TinyViT) + 5 Phase-3 ablations on the M2 stack (E3.1 full-data control, E3.2 +rotation aug, E3.3 +depth-as-blue, E3.4 +multi-positive loss, E3.5 all-knobs union) + 4 Phase-4 runs (P4 tuned 40-ep champion, P4 tuned 25-ep ablation, P4 4-channel depth clean, P4 4-channel all-knobs), plus an 11-trial Optuna sweep and an image-wise retrain of the E3.5 config. Champion is **P4 tuned at 78.0 %**.
+21 custom models + 3 frontier LLMs: 3 Phase-1 baselines (random, centre+median-size, depth-edge antipodal) + 5 Phase-2 learned models (M1 TinyRedmonCNN, M2 ResNet-18 regressor, M3 ResNet-18 hybrid head, M4 GGCNNTiny, M5 TinyViT) + 5 Phase-3 ablations on the M2 stack (E3.1 full-data control, E3.2 +rotation aug, E3.3 +depth-as-blue, E3.4 +multi-positive loss, E3.5 all-knobs union) + 4 Phase-4 runs (P4 tuned 40-ep champion, P4 tuned 25-ep ablation, P4 4-channel depth clean, P4 4-channel all-knobs) + 4 Phase-5 paradigm tests (E5.0 RGB global control, E5.1 GG-CNN-v2, E5.2 GR-ConvNet-lite, E5.3 ResNet18-FCN) and a 3-way frontier-LLM head-to-head (Claude Opus, Claude Haiku, Codex GPT-5.5), plus an 11-trial Optuna sweep, an image-wise retrain, and the per-pixel ablation grid. Champion is still the **P4 tuned global regressor at 78.0 %** — the Phase-5 per-pixel paradigm is a documented negative result.
