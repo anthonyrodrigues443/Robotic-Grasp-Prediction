@@ -1,0 +1,4 @@
+ablation,accuracy,vs_base
+GGCNN-v2 single-blob (no multi-grasp),0.04,0.04
+ResNet18-FCN from scratch (no ImageNet),0.19,-0.23
+GRConvNet-lite no skip connection,0.06,0.06

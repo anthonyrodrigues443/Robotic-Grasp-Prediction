@@ -1,0 +1,15 @@
+{
+  "phase5_best_per_pixel": "ResNet18-FCN (pretrained)",
+  "best_per_pixel_acc": 0.42,
+  "global_regressor_control_acc": 0.69,
+  "ggcnn_v2_acc_vs_phase2_zero": 0.0,
+  "p4_champion": 0.78,
+  "redmon_2015": 0.849,
+  "custom_vs_llm": {
+    "Custom: ResNet18-FCN (pretrained)": 0.5,
+    "Custom: Global ResNet18": 0.75,
+    "claude/opus": 0.25,
+    "claude/haiku": 0.15,
+    "codex/gpt-5.5": 0.75
+  }
+}

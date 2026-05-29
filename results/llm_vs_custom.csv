@@ -1,0 +1,6 @@
+model,n,accuracy,median_iou,parse_rate,latency_s,cost_per_1k_usd
+Custom: Global ResNet18,40,0.75,0.395,1.0,0.017,0.0
+codex/gpt-5.5,40,0.75,0.419,1.0,41.015,50.0
+Custom: ResNet18-FCN (pretrained),40,0.5,0.271,1.0,0.029,0.0
+claude/opus,40,0.25,0.0,1.0,16.59,22.5
+claude/haiku,40,0.15,0.0,1.0,18.135,1.5

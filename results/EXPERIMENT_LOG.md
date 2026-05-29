@@ -224,3 +224,47 @@ Protocol: object-wise. TEST=folder 03 (n=100), VAL=folder 07 (Optuna objective),
 | P4 E3.5-cfg image-wise | image | 0.757 | -0.013 | 0.391 |
 
 Failure decomposition (wrong/100): E3.5={'angle_ok_iou_low': 14, 'iou_ok_angle_wrong': 3, 'both_wrong': 6}, tuned={'angle_ok_iou_low': 10, 'iou_ok_angle_wrong': 6, 'both_wrong': 6}.
+
+## Phase 5 — per-pixel paradigm switch + frontier-LLM head-to-head (2026-05-29)
+
+Object-wise, TEST=folder 03 (n=100). All Phase-5 models RGB-only (depth dropped — 3 prior experiments agree it hurts). Per-pixel target = multi-grasp quality/cos2θ/sin2θ/width maps painted from ALL positives (Morrison 2018); decode argmax→GraspRect→Jiang, the same scorer as the global head. Target painting cached once per dataset (hflip applied on the cached maps) for a ~3.7x epoch speedup.
+
+**The Phase-4 plan predicted per-pixel would attack the localisation ceiling and approach Redmon (0.849). It did the opposite — the paradigm collapsed below the global regressor.**
+
+| Experiment | Paradigm | Pretrained | Accuracy | Median IoU | Median angle err | Params |
+|---|---|---|---:|---:|---:|---:|
+| GlobalReg_ResNet18 (control) | global 6-vec | yes | **0.690** | 0.417 | 8.0° | 11.2M |
+| ResNet18-FCN | per-pixel maps | yes | 0.420 | 0.251 | 8.5° | 11.3M |
+| GRConvNet-lite | per-pixel maps | no | 0.000 | 0.000 | 21.9° | 1.8M |
+| GGCNN-v2 | per-pixel maps | no | 0.000 | 0.000 | 40.6° | 119K |
+| *P4 tuned champion (ref)* | global 6-vec | yes | *0.780* | *0.445* | *5.6°* | *11.2M* |
+
+Clean paradigm isolation: ResNet18-FCN shares the exact pretrained backbone of the global regressor and changes ONLY the output head — per-pixel maps score **0.420 vs the global head's 0.690** (−0.27). Per-pixel loses with everything else held equal.
+
+GG-CNN rescue test: the identical Phase-2 `GGCNNTiny` that scored 0.0, now on 4× data (785) + proper multi-grasp targets, still scores **0.000**. The Phase-2 zero was the paradigm-without-pretraining on a small set, not just data starvation.
+
+**Ablation (Δ vs the corresponding full model):**
+
+| Lever removed | Accuracy | Δ |
+|---|---:|---:|
+| ResNet18-FCN: ImageNet pretraining | 0.190 | **−0.230** |
+| GGCNN-v2: multi-grasp targets (→ single blob) | 0.040 | +0.040 |
+| GRConvNet-lite: skip connection | 0.060 | +0.060 |
+
+Pretraining is the dominant lever (4th time in this project). The per-pixel decoder has no ImageNet equivalent, so the paradigm forfeits the project's strongest lever in its decoder.
+
+Failure decomposition (wrong/100): ResNet18-FCN={'angle_ok_iou_low': 39, 'iou_ok_angle_wrong': 8, 'both_wrong': 11}, global control={'angle_ok_iou_low': 8, 'iou_ok_angle_wrong': 9, 'both_wrong': 14}. Counterintuitively the per-pixel model — sold as "predict *where* to grasp" — has 39 localisation failures vs the global head's 8.
+
+GT-roundtrip output-resolution ceiling: 56²→0.90, 112²→0.99, 218²→1.00 (justifies the 112² map resolution; not the binding constraint).
+
+**Frontier-LLM head-to-head** (n=40 stratified folder-03 sample, same indices for all; grasp scored by the identical Jiang metric):
+
+| Model | Accuracy | Median IoU | Parse rate | Latency/img | Cost/1k |
+|---|---:|---:|---:|---:|---:|
+| Custom: Global ResNet18 | 0.75 | 0.395 | 1.00 | 0.017 s | $0.00 |
+| codex / gpt-5.5 | 0.75 | 0.419 | 1.00 | 41.0 s | $50.00 |
+| Custom: ResNet18-FCN | 0.50 | 0.271 | 1.00 | 0.029 s | $0.00 |
+| claude / opus | 0.25 | 0.000 | 1.00 | 16.6 s | $22.50 |
+| claude / haiku | 0.15 | 0.000 | 1.00 | 18.1 s | $1.50 |
+
+GPT-5.5 *ties* the custom CNN on grasp accuracy (0.75) and even edges it on median IoU (0.419 vs 0.395) — but at ~2,400× the latency and ~50,000× the cost. Both Claude models fail the spatial task (median IoU 0.000 — they get the gripper angle right but cannot localise the grasp to IoU>0.25). Latency includes CLI startup overhead; the cost math reflects equivalent direct-API usage. (Custom n=40 subset numbers run above the full-folder-03 figures, 0.75 vs 0.69 / 0.50 vs 0.42, due to sampling variance on the 40-image subset.)

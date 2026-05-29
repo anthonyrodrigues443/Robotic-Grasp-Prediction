@@ -1,0 +1,3 @@
+model,angle-ok/IoU-low,IoU-ok/angle-wrong,both-wrong
+ResNet18-FCN (pretrained),39,8,11
+GlobalReg_ResNet18 (control),8,9,14
