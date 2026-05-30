@@ -1,0 +1,723 @@
+{
+  "n": 100,
+  "accuracy": 0.77,
+  "median_iou": 0.3956284207097609,
+  "median_angle_err": 5.494862221611799,
+  "per_sample": [
+    {
+      "pcd_id": 300,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.29304030677972315,
+      "best_angle_err": 0.6565982028274568
+    },
+    {
+      "pcd_id": 301,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.39419862780096704,
+      "best_angle_err": 3.970707539958852
+    },
+    {
+      "pcd_id": 302,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.29235275567154906,
+      "best_angle_err": 11.651478782115959
+    },
+    {
+      "pcd_id": 303,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.29711816401341207,
+      "best_angle_err": 7.07029913076097
+    },
+    {
+      "pcd_id": 304,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.5164681305652019,
+      "best_angle_err": 5.25314692077705
+    },
+    {
+      "pcd_id": 305,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.2945817493794664,
+      "best_angle_err": 1.1643352079855234
+    },
+    {
+      "pcd_id": 306,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.3128090240268137,
+      "best_angle_err": 3.0945881552863312
+    },
+    {
+      "pcd_id": 307,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.3335057573711761,
+      "best_angle_err": 5.337849360897498
+    },
+    {
+      "pcd_id": 308,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.26699311945288234,
+      "best_angle_err": 10.22264112349933
+    },
+    {
+      "pcd_id": 309,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.5700819391906475,
+      "best_angle_err": 3.7551562425108536
+    },
+    {
+      "pcd_id": 310,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.312077741023282,
+      "best_angle_err": 5.809457902385418
+    },
+    {
+      "pcd_id": 311,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.2877269842022648,
+      "best_angle_err": 7.356853251090517
+    },
+    {
+      "pcd_id": 312,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.45221568552680574,
+      "best_angle_err": 6.313639881758695
+    },
+    {
+      "pcd_id": 313,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.4783595618762531,
+      "best_angle_err": 1.2955759521760042
+    },
+    {
+      "pcd_id": 314,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.5937473006076054,
+      "best_angle_err": 2.9564744822077365
+    },
+    {
+      "pcd_id": 315,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.35949068425024,
+      "best_angle_err": 4.825694481704801
+    },
+    {
+      "pcd_id": 316,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.34980269956399024,
+      "best_angle_err": 62.65877289557945
+    },
+    {
+      "pcd_id": 317,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.26633647327213855,
+      "best_angle_err": 6.468891273573085
+    },
+    {
+      "pcd_id": 318,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.41496086058173554,
+      "best_angle_err": 2.8063444574084
+    },
+    {
+      "pcd_id": 319,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.6986389008259849,
+      "best_angle_err": 5.1327531579115
+    },
+    {
+      "pcd_id": 320,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.23950602220121076,
+      "best_angle_err": 88.3414802922376
+    },
+    {
+      "pcd_id": 321,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.2231460012367192,
+      "best_angle_err": 65.2703190029886
+    },
+    {
+      "pcd_id": 322,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.45882703899067173,
+      "best_angle_err": 7.759781724968056
+    },
+    {
+      "pcd_id": 323,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.2759106638792542,
+      "best_angle_err": 77.67344277671071
+    },
+    {
+      "pcd_id": 324,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.06864241500187555,
+      "best_angle_err": 17.863239384621238
+    },
+    {
+      "pcd_id": 325,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.04729583580627376,
+      "best_angle_err": 10.77674584603487
+    },
+    {
+      "pcd_id": 326,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.2623411870177313,
+      "best_angle_err": 27.048159422813143
+    },
+    {
+      "pcd_id": 327,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.07601680145031407,
+      "best_angle_err": 2.6428777876681977
+    },
+    {
+      "pcd_id": 328,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.1354422042656573,
+      "best_angle_err": 12.687387099509067
+    },
+    {
+      "pcd_id": 329,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.41458261250438855,
+      "best_angle_err": 13.10747937656788
+    },
+    {
+      "pcd_id": 330,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.4391209181993898,
+      "best_angle_err": 59.89693491563965
+    },
+    {
+      "pcd_id": 331,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.33538744737572024,
+      "best_angle_err": 1.8249875644082607
+    },
+    {
+      "pcd_id": 332,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.3970582136185548,
+      "best_angle_err": 5.198814940108093
+    },
+    {
+      "pcd_id": 333,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.42508428357975364,
+      "best_angle_err": 3.3079732187042574
+    },
+    {
+      "pcd_id": 334,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.34487219681084674,
+      "best_angle_err": 2.486191675424152
+    },
+    {
+      "pcd_id": 335,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.08179473513624853,
+      "best_angle_err": 65.78004053769493
+    },
+    {
+      "pcd_id": 336,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.12626162966918392,
+      "best_angle_err": 62.23299606942611
+    },
+    {
+      "pcd_id": 337,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.18951644078855043,
+      "best_angle_err": 64.4033697850416
+    },
+    {
+      "pcd_id": 338,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.2955415060692286,
+      "best_angle_err": 52.45963733402043
+    },
+    {
+      "pcd_id": 339,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.41526461807214143,
+      "best_angle_err": 6.577034134764233
+    },
+    {
+      "pcd_id": 340,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.359464265457483,
+      "best_angle_err": 85.29107678797337
+    },
+    {
+      "pcd_id": 341,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.31068497446998483,
+      "best_angle_err": 57.33218118260567
+    },
+    {
+      "pcd_id": 342,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.5537710896297763,
+      "best_angle_err": 7.716657156033023
+    },
+    {
+      "pcd_id": 343,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.5581133671367526,
+      "best_angle_err": 3.635072446614365
+    },
+    {
+      "pcd_id": 344,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.49767694668775325,
+      "best_angle_err": 1.554505888609114
+    },
+    {
+      "pcd_id": 345,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.3452248463472555,
+      "best_angle_err": 0.9461944271005649
+    },
+    {
+      "pcd_id": 346,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.2522335552500177,
+      "best_angle_err": 14.875605354263481
+    },
+    {
+      "pcd_id": 347,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.16952154679712875,
+      "best_angle_err": 83.39744786274433
+    },
+    {
+      "pcd_id": 348,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.4262237547258338,
+      "best_angle_err": 43.036333343929925
+    },
+    {
+      "pcd_id": 349,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.4119831569748823,
+      "best_angle_err": 2.96481489869236
+    },
+    {
+      "pcd_id": 350,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.14504540889493503,
+      "best_angle_err": 4.678815984044622
+    },
+    {
+      "pcd_id": 351,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.4234579179994356,
+      "best_angle_err": 2.0091427510078246
+    },
+    {
+      "pcd_id": 352,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.5766783209727517,
+      "best_angle_err": 6.811407352942901
+    },
+    {
+      "pcd_id": 353,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.5645820969403271,
+      "best_angle_err": 1.0650064281263525
+    },
+    {
+      "pcd_id": 354,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.5648695262027713,
+      "best_angle_err": 3.5742885022123354
+    },
+    {
+      "pcd_id": 355,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.43949637108264883,
+      "best_angle_err": 2.8137192842226764
+    },
+    {
+      "pcd_id": 356,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.4666715150029636,
+      "best_angle_err": 9.101186573927416
+    },
+    {
+      "pcd_id": 357,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.4020343515078153,
+      "best_angle_err": 0.1135558585070271
+    },
+    {
+      "pcd_id": 358,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.6067717942830643,
+      "best_angle_err": 2.8779395109918937
+    },
+    {
+      "pcd_id": 359,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.4206280741207405,
+      "best_angle_err": 1.563622610366954
+    },
+    {
+      "pcd_id": 360,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.5023750975887039,
+      "best_angle_err": 9.26118574690046
+    },
+    {
+      "pcd_id": 361,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.5142723082784255,
+      "best_angle_err": 0.6761666569507412
+    },
+    {
+      "pcd_id": 362,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.5484690369213182,
+      "best_angle_err": 0.13418253742831965
+    },
+    {
+      "pcd_id": 363,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.47396463625286184,
+      "best_angle_err": 1.7215754485069068
+    },
+    {
+      "pcd_id": 364,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.4531885212557432,
+      "best_angle_err": 0.8757844560165173
+    },
+    {
+      "pcd_id": 365,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.7091168605971575,
+      "best_angle_err": 5.6518750823261
+    },
+    {
+      "pcd_id": 366,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.6179536426089782,
+      "best_angle_err": 0.09826256739524553
+    },
+    {
+      "pcd_id": 367,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.4930429875253576,
+      "best_angle_err": 0.7236166139148716
+    },
+    {
+      "pcd_id": 368,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.7896808827677305,
+      "best_angle_err": 1.9228810778708603
+    },
+    {
+      "pcd_id": 369,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.46180820664561173,
+      "best_angle_err": 10.229308718314062
+    },
+    {
+      "pcd_id": 370,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.7256704215893525,
+      "best_angle_err": 3.9025193518002013
+    },
+    {
+      "pcd_id": 371,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.2800731241883238,
+      "best_angle_err": 9.527621409421425
+    },
+    {
+      "pcd_id": 372,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.5240324888482377,
+      "best_angle_err": 5.229956911582366
+    },
+    {
+      "pcd_id": 373,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.36694862071754347,
+      "best_angle_err": 8.251812574581209
+    },
+    {
+      "pcd_id": 374,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.324919936149862,
+      "best_angle_err": 4.933430631893604
+    },
+    {
+      "pcd_id": 375,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.5458149527358134,
+      "best_angle_err": 4.907041641814089
+    },
+    {
+      "pcd_id": 376,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.18104950923525695,
+      "best_angle_err": 52.72790308453659
+    },
+    {
+      "pcd_id": 377,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.2517204505863054,
+      "best_angle_err": 27.11646392789585
+    },
+    {
+      "pcd_id": 378,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.5406535358944771,
+      "best_angle_err": 8.042853346900174
+    },
+    {
+      "pcd_id": 379,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.6174679677773863,
+      "best_angle_err": 2.480983502095796
+    },
+    {
+      "pcd_id": 380,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.6558662667398109,
+      "best_angle_err": 1.9470612843640582
+    },
+    {
+      "pcd_id": 381,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.7730753089030451,
+      "best_angle_err": 3.920529226767093
+    },
+    {
+      "pcd_id": 382,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.3222420095959126,
+      "best_angle_err": 1.5093956570999865
+    },
+    {
+      "pcd_id": 383,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.5233546658011969,
+      "best_angle_err": 6.339556071781573
+    },
+    {
+      "pcd_id": 384,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.5037190738305003,
+      "best_angle_err": 0.5081481609111815
+    },
+    {
+      "pcd_id": 385,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.6578237342719346,
+      "best_angle_err": 9.261453035188055
+    },
+    {
+      "pcd_id": 386,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.3844336976278408,
+      "best_angle_err": 20.454222146151878
+    },
+    {
+      "pcd_id": 387,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.007666453409661582,
+      "best_angle_err": 10.908455197689193
+    },
+    {
+      "pcd_id": 388,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.0,
+      "best_angle_err": 74.0124961686829
+    },
+    {
+      "pcd_id": 389,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.1411045118381167,
+      "best_angle_err": 69.85358934244103
+    },
+    {
+      "pcd_id": 390,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.22107131503549082,
+      "best_angle_err": 39.59001969582835
+    },
+    {
+      "pcd_id": 391,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.2960792563659813,
+      "best_angle_err": 1.6066251537193956
+    },
+    {
+      "pcd_id": 392,
+      "object_id": 3,
+      "correct": 0,
+      "best_iou": 0.31653947096490814,
+      "best_angle_err": 44.835457137665294
+    },
+    {
+      "pcd_id": 393,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.4155080003853814,
+      "best_angle_err": 3.6788838802201838
+    },
+    {
+      "pcd_id": 394,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.4022035251545828,
+      "best_angle_err": 3.9612291150144046
+    },
+    {
+      "pcd_id": 395,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.5371774774207511,
+      "best_angle_err": 3.549758688523185
+    },
+    {
+      "pcd_id": 396,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.38653965417449043,
+      "best_angle_err": 5.945923686784781
+    },
+    {
+      "pcd_id": 397,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.2500284685673367,
+      "best_angle_err": 0.6239331371190673
+    },
+    {
+      "pcd_id": 398,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.28498625333094735,
+      "best_angle_err": 7.604711321080369
+    },
+    {
+      "pcd_id": 399,
+      "object_id": 3,
+      "correct": 1,
+      "best_iou": 0.31661651890895004,
+      "best_angle_err": 7.136052547555522
+    }
+  ],
+  "eval_seconds": 2.146794080734253,
+  "device": "mps",
+  "checkpoint": "P4_tuned_champion.pt",
+  "latency_benchmark": {
+    "mps": {
+      "ms_per_image": 7.08383918274194,
+      "images_per_sec": 141.1663893268862,
+      "runs": 50
+    },
+    "cpu": {
+      "ms_per_image": 327.71345334127545,
+      "images_per_sec": 3.0514462857849667,
+      "runs": 50
+    }
+  }
+}

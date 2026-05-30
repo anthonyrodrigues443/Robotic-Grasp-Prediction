@@ -606,5 +606,38 @@
       }
     ],
     "llm_n": 40
+  },
+  "phase_6": {
+    "date": "2026-05-30",
+    "title": "Production pipeline + Streamlit UI",
+    "champion_checkpoint": "P4_tuned_champion.pt",
+    "reproduced_from_saved_artifact": {
+      "jiang_accuracy": 0.77,
+      "median_iou": 0.3956,
+      "median_angle_err_deg": 5.49,
+      "n": 100,
+      "test_object_ids": [
+        3
+      ],
+      "agreement": "identical under src/evaluate.py and trainer.evaluate, CPU and MPS"
+    },
+    "phase4_in_session_accuracy": 0.78,
+    "latency_steady_state": {
+      "mps_ms_per_img": 7.08,
+      "mps_img_per_s": 141.2,
+      "cpu_ms_per_img": 327.7
+    },
+    "deliverables": [
+      "config/config.yaml",
+      "src/data_pipeline.py",
+      "src/predict.py",
+      "src/evaluate.py",
+      "src/train.py",
+      "src/viz.py",
+      "app.py",
+      "models/model_card.md",
+      "tests/test_production.py"
+    ],
+    "tests_passing": 36
   }
 }

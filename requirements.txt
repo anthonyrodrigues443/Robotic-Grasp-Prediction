@@ -14,3 +14,5 @@ notebook>=7.2
 nbconvert>=7.16
 torch>=2.4
 torchvision>=0.19
+streamlit>=1.40
+PyYAML>=6.0

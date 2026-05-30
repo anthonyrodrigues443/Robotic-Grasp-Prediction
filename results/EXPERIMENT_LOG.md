@@ -6,6 +6,40 @@ project README is cross-checked against this file.
 
 ---
 
+## Phase 6 — 2026-05-30 — Production pipeline + Streamlit UI
+
+**What shipped:** config-driven train/evaluate/predict pipeline + a Streamlit
+demo + an HF-format model card, all wrapping the Phase-4 champion
+(`P4_tuned_champion.pt`, global ResNet-18 regressor). No weights were retrained.
+
+**Verification (the experiment of the day):** does the *saved artifact*
+reproduce the Phase-4 headline from a cold load? Loaded the `state_dict` into a
+fresh model and scored folder-03 (n=100) under the Jiang metric via two
+independent harnesses on two devices:
+
+| Harness | Device | Jiang acc | Median IoU | Median angle err |
+|---------|--------|----------:|-----------:|-----------------:|
+| `src/evaluate.py` (new production) | MPS | **0.770** | 0.396 | 5.5° |
+| `trainer.evaluate` (research) | MPS | 0.770 | 0.396 | 5.5° |
+| `trainer.evaluate` (research) | CPU | 0.770 | 0.396 | — |
+| *Phase-4 report (in-session)* | MPS | *0.780* | *0.445* | *5.6°* |
+
+**Finding:** production and research harnesses agree exactly and are
+device-independent → no train/serve skew. The shipped artifact is **0.770**
+(the logged 0.780 was the best in-session eval; the persisted checkpoint is a
+single test image lower). 0.770 is now the source-of-truth number in config,
+model card, UI, and a unit test (`tests/test_production.py` asserts the full
+folder-03 eval == 0.770).
+
+**Latency (steady-state, warmup excluded, 50 runs):** MPS 7.1 ms/img
+(141 img/s); CPU 327.7 ms/img. ≈5,800× faster than the Phase-5 GPT-5.5 grasp
+call (≈41 s/img) at zero marginal cost.
+
+**Suite:** 36 tests passing (33 prior + 3 production). Streamlit `AppTest`:
+0 exceptions end-to-end.
+
+---
+
 ## Phase 2 — 2026-05-26 — Five CNN/ViT architectures head-to-head
 
 **Dataset / split:** unchanged from Phase 1 (Cornell archives 01–03, 300

@@ -1,0 +1,50 @@
+# Robotic Grasp Prediction — production config.
+# Single source of truth for the Phase-6 production pipeline (train / evaluate /
+# predict / app). The champion is the Phase-4 tuned global ResNet-18 regressor.
+
+data:
+  # Root containing the extracted Cornell folders 01..10 (one CornellSample per pcd).
+  cornell_root: data/raw/cornell/extracted
+  # Object-wise split: hold out these folders as the TEST set. Folder 03 is the
+  # canonical test fold used across Phases 1-5, so reported numbers are comparable.
+  test_object_ids: [3]
+  # Optuna validation fold from Phase 4 (kept out of training for the champion's
+  # held-out val signal; folded back into FULL-TRAIN for the final champion).
+  val_object_ids: [7]
+
+model:
+  arch: ResNet18Regressor          # 3-channel RGB, 6-vec regression head
+  out_dim: 6                       # (cx, cy, w, h, sin2theta, cos2theta) in the 224 frame
+  input_size: 224                  # ImageNet-standard so the pretrained backbone is reused
+  champion_checkpoint: models/P4_tuned_champion.pt
+
+# Phase-4 Optuna best config (the recipe that produced the 0.780 champion).
+train:
+  epochs: 40
+  lr: 0.0011973917635685037
+  weight_decay: 0.0002607024758370766
+  rotation_deg: 30                 # rotation augmentation half-range
+  batch_size: 16
+  multi_positive: true             # closest-GT loss over all positive grasps
+  use_depth_blue: false            # Phase-4 falsified depth injection on the Jiang metric
+  seed: 42
+  out_checkpoint: models/champion_reproduced.pt
+
+# Jiang et al. 2011 rectangle metric — the Cornell field standard.
+metric:
+  iou_thresh: 0.25
+  angle_thresh_deg: 30.0
+
+# Reference numbers for the UI / model card (object-wise, folder-03 test, n=100).
+# champion_accuracy is the value the SAVED artifact reproduces under both the
+# research harness (trainer.evaluate) and the production pipeline (src/evaluate.py),
+# verified identical on CPU and MPS. The Phase-4 report logged 0.780 as the
+# in-session number; the persisted checkpoint scores 0.770 (a single-image gap).
+reference:
+  champion_accuracy: 0.770
+  champion_median_iou: 0.396
+  champion_median_angle_err_deg: 5.5
+  phase4_in_session_accuracy: 0.780
+  lenz_2014_object_wise: 0.739
+  redmon_2015_object_wise: 0.849
+  cao_2023_sota_image_wise: 0.994
