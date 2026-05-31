@@ -264,13 +264,31 @@ explicit limitations + hardware-safety section. **Honest reversal:** the Phase-4
 report logged 0.780 in-session; the persisted artifact is 0.770 (one test image),
 and 0.770 is what ships everywhere (config, card, UI, tests).
 
-### Phase 7: Tests + Consolidation — 2026-05-31
+### Phase 7: Testing + README + Consolidation — 2026-05-31
 
-Full pytest coverage — **45 passing**: research modules + a production smoke path
-(data → predict → evaluate asserted `== reference`) + data-free unit tests
-(config contract, object-wise split no-leakage, shared renderer, prediction DTO).
-README rewritten with the architecture diagram, consolidated leaderboard, and
-[final report](reports/final_report.md).
+<table>
+<tr>
+<td valign="top" width="38%">
+
+**What was tested:** No new modelling — the closing session pins trust instead. Added a data-free unit layer (config contract, object-wise split no-leakage, shared renderer, prediction DTO) on top of the Phase-6 production smoke path, taking the suite to **45 passing** in 13 s.<br><br>
+**What worked best:** Splitting tests into artifact-dependent (skip without the 1.4 GB Cornell checkpoint) vs pure-logic (always run) — a cold reviewer's `pytest` stays green on a clean checkout, while on a full machine a test asserts the saved artifact scores `== reference` (0.770).
+
+</td>
+<td align="center" width="24%">
+
+<img src="results/phase5_leaderboard.png" width="220">
+
+</td>
+<td valign="top" width="38%">
+
+**Key Insight:** The shipped claim is now CI-pinned end-to-end — one test proves `preprocess_image` produces bit-identical tensors for PIL and ndarray inputs, so "0.770, reproducible, no train/serve skew" is enforced by code, not just prose.<br><br>
+**Surprise:** The highest-value work in the final session wasn't tuning — it was documentation rot. The README still described a Phase-1-only repo and pointed at a `scripts/fetch_cornell.sh` that was never written; that rot makes a strong result look untrustworthy.<br><br>
+**Research:** Google *Rules of ML* #29 (train/serve skew) — pinned the single-preprocessing-path guarantee in a unit test. Mitchell et al. 2019 (Model Cards) — model card re-checked against the shipped 0.770.<br><br>
+**Best Model So Far:** P4 tuned global ResNet-18 regressor — **0.770** Jiang accuracy (unchanged); beats Lenz 2014 (0.739), 7.9 pp under Redmon 2015 (0.849).
+
+</td>
+</tr>
+</table>
 
 ## Production demo
 
