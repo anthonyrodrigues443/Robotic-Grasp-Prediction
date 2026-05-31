@@ -9,12 +9,21 @@ no artifacts present.
 """
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
 import pytest
+
+# Seed once so the "random" image fixtures are reproducible across runs — this is
+# a reproducibility-focused suite, failures should be deterministic.
+_RNG = np.random.default_rng(0)
+
+
+def _rand_rgb(h: int = 480, w: int = 640) -> np.ndarray:
+    return (_RNG.random((h, w, 3)) * 255).astype(np.uint8)
 from matplotlib.figure import Figure
 from PIL import Image
 
@@ -77,7 +86,7 @@ def test_object_wise_split_empty_testset():
 # ---------------------------------------------------------------- preprocessing
 
 def test_preprocess_image_accepts_pil_and_ndarray():
-    arr = (np.random.rand(480, 640, 3) * 255).astype(np.uint8)
+    arr = _rand_rgb()
     x_np = preprocess_image(arr)
     x_pil = preprocess_image(Image.fromarray(arr))
     assert tuple(x_np.shape) == (1, 3, 224, 224)
@@ -89,7 +98,7 @@ def test_preprocess_image_accepts_pil_and_ndarray():
 # ---------------------------------------------------------------- renderer
 
 def test_render_grasp_returns_figure():
-    img = Image.fromarray((np.random.rand(480, 640, 3) * 255).astype(np.uint8))
+    img = Image.fromarray(_rand_rgb())
     pred = make_rect(cx=320, cy=240, w=80, h=30, angle_rad=0.4)
     gts = [make_rect(cx=300, cy=250, w=90, h=28, angle_rad=0.35)]
     fig = render_grasp(img, pred, gt_rects=gts, title="unit test")
@@ -98,7 +107,7 @@ def test_render_grasp_returns_figure():
 
 
 def test_render_grasp_without_ground_truth():
-    img = Image.fromarray((np.random.rand(480, 640, 3) * 255).astype(np.uint8))
+    img = Image.fromarray(_rand_rgb())
     pred = make_rect(cx=100, cy=100, w=60, h=20, angle_rad=-0.7)
     fig = render_grasp(img, pred)
     assert isinstance(fig, Figure)
@@ -128,6 +137,10 @@ def test_grasp_prediction_to_dict_is_serialisable():
               "corners", "latency_ms", "raw_6vec"):
         assert k in d
     assert isinstance(d["corners"], list) and len(d["corners"]) == 4
+    # actually round-trip through JSON — this is what the --json CLI path does, so
+    # a stray numpy scalar in a field would break serving even if keys are present.
+    restored = json.loads(json.dumps(d))
+    assert restored["corners"] == d["corners"]
 
 
 def test_grasp_prediction_to_grasp_rect_roundtrips_center():

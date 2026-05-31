@@ -127,7 +127,9 @@ the correct production choice.
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 # fetch Cornell folders 01-10 — see data/README.md (Wayback mirror)
-python src/evaluate.py            # reproduces 0.770 + latency benchmark
+# the champion checkpoint is gitignored; regenerate it, then evaluate the artifact:
+python src/train.py --evaluate                                      # -> models/champion_reproduced.pt
+python src/evaluate.py --checkpoint models/champion_reproduced.pt   # reproduces 0.770 + benchmark
 python src/predict.py --image <rgb.png>
 streamlit run app.py             # interactive demo
 pytest -q                        # 45 tests

@@ -108,7 +108,10 @@ pip install -r requirements.txt
 # fetch Cornell folders 01-10 (official server 404s since 2025; use the Wayback
 # mirror documented in data/README.md). data/raw/ is gitignored.
 
-python src/evaluate.py            # reproduce the 0.770 headline + latency benchmark
+# The champion checkpoint (models/P4_tuned_champion.pt) is gitignored. Regenerate
+# it from the data with the Phase-4 recipe, then evaluate the saved artifact:
+python src/train.py --evaluate    # ~40 epochs -> models/champion_reproduced.pt (~0.77)
+python src/evaluate.py --checkpoint models/champion_reproduced.pt   # reproduce + benchmark
 python src/predict.py --image <rgb.png>   # single-image grasp (JSON via --json)
 streamlit run app.py             # interactive demo
 pytest -q                        # 45 tests
