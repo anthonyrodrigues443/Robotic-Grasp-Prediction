@@ -3,15 +3,18 @@
 > Predict 2-D oriented grasp rectangles from RGB-D images of household objects
 > on a table. Cornell Grasping Dataset; Jiang IoU > 0.25 / angle < 30° metric.
 
-**Status:** Phase 5 / 7 — built the per-pixel grasp-quality detector (GG-CNN /
-GR-ConvNet / ResNet18-FCN) and tested the Phase-4 paradigm-switch prediction
-head-on. It **falsified cleanly**: with pretraining held constant, the per-pixel
-head scores 0.420 vs the global regressor's 0.690 (−27 pp), so the **P4 tuned
-global regressor at 78.0 % Jiang accuracy** remains champion. Frontier-LLM
-head-to-head: GPT-5.5 ties the custom CNN (0.75 acc) but at ~50,000× the cost;
-Claude models fail the spatial task. Per-pixel models dropped from production,
-kept as a documented negative result.
-Numbers in [results/EXPERIMENT_LOG.md](results/EXPERIMENT_LOG.md).
+**Status:** ✅ **Complete (Phase 7 / 7).** Champion = the **P4 tuned global
+ResNet-18 regressor**, shipped at a *reproducible-from-artifact* **0.770 Jiang
+accuracy** (object-wise folder-03, n=100) — beats Lenz 2014 (0.739), 7.9 pp under
+Redmon 2015 (0.849). Phase 5 **falsified** the per-pixel paradigm-switch
+prediction (per-pixel 0.420 vs global 0.690 with pretraining held constant, −27 pp).
+Frontier-LLM head-to-head: GPT-5.5 ties the custom CNN (0.75 acc) but at ~2,400×
+the latency and ~50,000× the cost; Claude models fail the spatial task. Phase 6
+productionised it (one shared preprocessing path, verified zero train/serve skew);
+Phase 7 added full test coverage (45 passing) and this consolidated write-up.
+
+📄 **[Final report](reports/final_report.md)** · 🃏 **[Model card](models/model_card.md)** ·
+📊 **[Experiment log](results/EXPERIMENT_LOG.md)**
 Each phase builds on the research log below.
 
 ## Research log
@@ -23,8 +26,8 @@ Each phase builds on the research log below.
 | 3 | Wed 2026-05-27 | Full data + rotation aug + depth channel + multi-positive loss | [phase3_full_data_and_aug.ipynb](notebooks/phase3_full_data_and_aug.ipynb) | [day3_phase3_report.md](reports/day3_phase3_report.md) |
 | 4 | Thu 2026-05-28 | Hyperparameter tuning + error analysis | [phase4_tuning_error_analysis.ipynb](notebooks/phase4_tuning_error_analysis.ipynb) | [day4_phase4_report.md](reports/day4_phase4_report.md) |
 | 5 | Fri 2026-05-29 | Per-pixel paradigm switch + frontier-LLM head-to-head | [phase5_per_pixel_and_llm.ipynb](notebooks/phase5_per_pixel_and_llm.ipynb) | [day5_phase5_report.md](reports/day5_phase5_report.md) |
-| 6 | Sat 2026-05-30 | Production pipeline + Gradio UI | — | — |
-| 7 | Sun 2026-05-31 | Tests + README polish + final report | — | — |
+| 6 | Sat 2026-05-30 | Production pipeline + Streamlit UI + model card | — | [day6_phase6_report.md](reports/day6_phase6_report.md) |
+| 7 | Sun 2026-05-31 | Tests (45 passing) + README + final report | — | [day7_phase7_report.md](reports/day7_phase7_report.md) |
 
 ## Dataset
 
@@ -42,30 +45,59 @@ Jiang et al. 2011 **rectangle metric**: a prediction is correct iff there
 exists a ground-truth positive grasp with **IoU > 0.25** AND **angular
 difference < 30°**. Field-standard since 2011; every Cornell paper reports it.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    IMG["RGB image (any size)"] --> PRE["preprocess_image: resize 224 + ImageNet norm (one shared path)"]
+    PRE --> BB["ResNet-18 backbone (ImageNet-pretrained)"]
+    BB --> HEAD["dropout 0.3 + linear head: 6-vec cx,cy,w,h,sin2θ,cos2θ"]
+    HEAD --> DEC["decode_prediction: oriented rect in 640x480 frame"]
+    DEC --> OUT["GraspPrediction: corners, angle, confidence, latency"]
+
+    subgraph train["train (src/train.py)"]
+        D["Cornell 785 imgs, object-wise split"] --> AUG["rot 30 + multi-positive closest-GT loss"] --> PRE
+    end
+    subgraph serve["serve (src/predict.py, app.py)"]
+        OUT --> UI["Streamlit overlay + metrics + LLM head-to-head"]
+    end
+    CFG["config/config.yaml (single source of truth)"] -.-> train
+    CFG -.-> serve
+```
+
 ## Project layout
 
 ```
 Robotic-Grasp-Prediction/
-├── README.md                this file
-├── requirements.txt
-├── .gitignore
+├── README.md                       this file
+├── app.py                          Streamlit demo (upload → grasp + LLM head-to-head)
+├── config/config.yaml              single source of truth (paths, recipe, thresholds, refs)
+├── requirements.txt · .gitignore
 ├── data/
-│   ├── README.md            dataset provenance + download instructions
-│   ├── raw/                 (gitignored) extracted Cornell archives
-│   └── processed/           (gitignored) cached depth maps, splits
+│   ├── README.md                   dataset provenance + Wayback download instructions
+│   ├── raw/                        (gitignored) extracted Cornell folders 01..10
+│   └── processed/                  (gitignored) cached splits
 ├── src/
-│   ├── cornell.py           dataset loader, GraspRect, IoU + Jiang metric
-│   └── baselines.py         RandomBaseline / CenterHeuristicBaseline / DepthAntipodalBaseline
-├── notebooks/
-│   └── phase1_baseline.ipynb
+│   ├── cornell.py                  loader, GraspRect, IoU + Jiang metric, make_rect
+│   ├── baselines.py                random / centre-heuristic / depth-antipodal
+│   ├── dataset*.py · torch_models.py · models_phase{4,5}.py   research models per phase
+│   ├── trainer*.py                 research training loops
+│   ├── data_pipeline.py            ⭐ shared config + loader + preprocess_image
+│   ├── predict.py                  GraspPredictor + GraspPrediction + CLI
+│   ├── evaluate.py                 reproduce 0.770 + latency benchmark
+│   ├── train.py                    config-driven champion retrain (--smoke)
+│   ├── viz.py                      shared grasp-rectangle renderer
+│   └── llm_grasp_eval.py           frontier-LLM head-to-head harness
+├── notebooks/                      phase1..phase5 executed research notebooks
+├── models/
+│   ├── P4_tuned_champion.pt        (gitignored) shipped checkpoint
+│   └── model_card.md               HF/Google-format card
 ├── results/
-│   ├── metrics.json
-│   ├── EXPERIMENT_LOG.md
-│   └── phase1_*.png         plots from Phase 1
-├── reports/
-│   └── day1_phase1_report.md
-└── tests/
-    └── test_cornell.py
+│   ├── EXPERIMENT_LOG.md · metrics.json · llm_vs_custom.csv
+│   ├── phase{1..6}_*.png/.csv      plots + leaderboards per phase
+│   └── ui_screenshot.png
+├── reports/                        day1..day7 + final_report.md
+└── tests/                          45 tests (cornell, dataset/models, phase3, production, phase7)
 ```
 
 ## Setup
@@ -73,9 +105,13 @@ Robotic-Grasp-Prediction/
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-# fetch the data (~1.4 GB for archives 01-03 used in Phase 1):
-bash scripts/fetch_cornell.sh    # written in Phase 2; Phase 1 used the inline curl from the report
-jupyter nbconvert --to notebook --execute --inplace notebooks/phase1_baseline.ipynb
+# fetch Cornell folders 01-10 (official server 404s since 2025; use the Wayback
+# mirror documented in data/README.md). data/raw/ is gitignored.
+
+python src/evaluate.py            # reproduce the 0.770 headline + latency benchmark
+python src/predict.py --image <rgb.png>   # single-image grasp (JSON via --json)
+streamlit run app.py             # interactive demo
+pytest -q                        # 45 tests
 ```
 
 ## Iteration Summary
@@ -210,9 +246,68 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/phase1_baseline.ip
 </tr>
 </table>
 
-## Current Status
+### Phase 6: Production Pipeline + Streamlit UI + Model Card — 2026-05-30
 
-Phase 5 complete. Current best is still the **P4 tuned ResNet-18 *global* regressor at 78.0 % Jiang accuracy** (object-wise split, n=100), median IoU 0.445 — Phase 5 **falsified the Phase-4 paradigm-switch prediction**. A `ResNet18-FCN` per-pixel detector sharing the exact pretrained backbone (only the output head differs) scored 0.420 vs the global head's matched RGB-only control 0.690 — a 27 pp **loss**; both from-scratch per-pixel nets (GG-CNN-v2, GR-ConvNet-lite) stayed at 0.000 even on 4× data with proper multi-grasp targets, so Phase 2's GG-CNN 0.0 was the paradigm-without-pretraining, not data starvation. Ablation pins the cause: ImageNet pretraining is worth −0.23 (FCN 0.42→0.19 from scratch), and a per-pixel decoder has no pretrained equivalent. Frontier-LLM head-to-head (n=40): **GPT-5.5 ties the custom CNN on accuracy (0.75) and edges it on median IoU (0.419 vs 0.395)** but at ~2,400× the latency and ~50,000× the cost; both Claude models fail the spatial task (median IoU 0.000 — right angle, wrong place). Phase 6 (Sat 2026-05-30) builds the production pipeline + UI around the **global regressor** (the paradigm that works here); the per-pixel models are dropped from production and kept documented as the negative result.
+**What was built:** a config-driven `train` / `evaluate` / `predict` / `app`
+stack around the champion, all routed through **one shared `preprocess_image`**
+so serving preprocessing is provably identical to training (the #1 source of a
+silent serve-time accuracy drop). **Verification:** the saved
+`P4_tuned_champion.pt` reproduces **0.770** under both the new production
+`evaluate.py` and the original research harness, **identically on CPU and MPS** —
+so the deployed number is real, not a lucky in-session eval. Steady-state
+latency **7.1 ms/img on MPS (141 img/s)**, ~5,800× faster than a frontier-LLM
+grasp call at zero marginal cost. Model card follows the HF/Google format with an
+explicit limitations + hardware-safety section. **Honest reversal:** the Phase-4
+report logged 0.780 in-session; the persisted artifact is 0.770 (one test image),
+and 0.770 is what ships everywhere (config, card, UI, tests).
+
+### Phase 7: Tests + Consolidation — 2026-05-31
+
+Full pytest coverage — **45 passing**: research modules + a production smoke path
+(data → predict → evaluate asserted `== reference`) + data-free unit tests
+(config contract, object-wise split no-leakage, shared renderer, prediction DTO).
+README rewritten with the architecture diagram, consolidated leaderboard, and
+[final report](reports/final_report.md).
+
+## Production demo
+
+The Streamlit app (`streamlit run app.py`) takes an example or uploaded image,
+overlays the predicted grasp (mint box, pink jaw plates), and shows the live
+metrics plus the carried-forward frontier-LLM head-to-head.
+
+![Streamlit UI](results/ui_screenshot.png)
+
+## Consolidated leaderboard (object-wise, n=100 unless noted)
+
+| Rank | Model | Phase | Acc | Median IoU | Median ∠err |
+|-----:|-------|:-----:|----:|-----------:|------------:|
+| 1 | **P4 tuned ResNet-18 global regressor** ⭐ | 4 | **0.770** | 0.396 | 5.5° |
+| 2 | E3.5 all-knobs (rot+depth-blue+multipos) | 3 | 0.770 | 0.404 | 4.9° |
+| 3 | E3.1 full-data control · E3.4 multi-pos | 3 | 0.730 | 0.405 | — |
+| 5 | E3.3 depth-as-blue | 3 | 0.710 | 0.420 | 9.9° |
+| 6 | P4 4-ch depth (clean) · E3.2 rot aug | 3/4 | 0.700 | — | — |
+| 8 | E5.0 RGB global control (matched) | 5 | 0.690 | 0.417 | 8.0° |
+| 10 | M2 ResNet-18 (200-img, data-starved) | 2 | 0.550 | 0.293 | 6.1° |
+| 11 | M5 TinyViT (scratch) | 2 | 0.470 | 0.364 | 36.8° |
+| 12 | E5.3 ResNet18-FCN per-pixel (pretrained) | 5 | 0.420 | 0.251 | 8.5° |
+| 14 | B3 depth-edge antipodal (heuristic floor) | 1 | 0.170 | 0.159 | 37.0° |
+| 17 | B1 random · M4/E5.1–5.2 per-pixel (scratch) | 1/2/5 | 0.000–0.010 | 0.000 | 40°+ |
+
+**Published Cornell baselines (object-wise):** Lenz 2014 = 0.739 (**beaten**),
+Redmon 2015 = 0.849 (−7.9 pp), Cao 2023 SOTA = 0.978 (image-wise).
+
+## Frontier-LLM head-to-head (n=40 stratified, zero-shot)
+
+| Model | Acc | Median IoU | Latency/img | Cost/1k |
+|-------|----:|-----------:|------------:|--------:|
+| **Custom global ResNet-18** ⭐ | 0.75 | 0.395 | **0.017 s** | **$0** |
+| codex / GPT-5.5 | 0.75 | 0.419 | 41.0 s | $50 |
+| claude / opus | 0.25 | 0.000 | 16.6 s | $22.50 |
+| claude / haiku | 0.15 | 0.000 | 18.1 s | $1.50 |
+
+GPT-5.5 *ties* the CNN on accuracy from raw pixels — but at ~2,400× the latency
+and ~50,000× the cost. Both Claude models fail spatially (right angle, wrong
+place). The free 17 ms CNN is the correct production choice.
 
 ## Key Findings
 
